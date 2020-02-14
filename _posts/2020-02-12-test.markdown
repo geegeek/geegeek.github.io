@@ -1,0 +1,935 @@
+# <span style="color: #993300;">**RANCID**</span>
+
+
+## Indice
+1. [Introduzione](#Introduzione)
+2. [Obiettivo](#Obiettivo)
+42. [Installazione server](#InstallazioneServer)
+82. [Installazione di Rancid su ubuntu i386](#Installazione di Rancid su ubuntu i386)
+141. [Configurare rancid](#Configurare rancid)
+    215. [Configurare i metodi di accesso per Rancid](#Configurare i metodi di accesso per Rancid)
+357. [ Eseguiamo rancid!](# Eseguiamo rancid!)
+490. [Configurazione di Cron](#Configurazione di Cron)
+8. [Installare ViewVC](#Installare ViewVC)
+627. [Come aggiungere altri dispositivi di cui fare il backup](#Come aggiungere altri dispositivi di cui fare il backup)
+734. [Sicurezza per il server](#Sicurezza per il server)
+759. [Elenco file di Rancid](#Elenco file di Rancid)
+901. [Approfondimenti per il futuro](#Approfondimenti per il futuro)
+13. [Sitografia](#Sitografia)
+
+
+
+
+##Introduzione
+Un tool in grado di monitorare le configurazioni dei dispositivi di rete , nel tempo utilizzando in modo equivalente diversi tool di Versioning, (CVD, SVN o Git). In termini di funzionalità dal [<span style="color: #0000ff;">sito di rancid</span>](http://www.shrubbery.net/rancid/) si legge che esso è capace di:
+
+*   log-in in each of the configured device,
+*   runs various commands to get the information that will be saved,
+*   cooks the output; re-formats, removes oscillating or increasing data,
+*   emails any differences from the codevious collection to a mail list,
+*   and finally commits those changes to the version control system
+
+Esso quindi permette di avere un backup nel tempo dei dispositivi di una rete ed aggiornare tali backup, ogni qual volta che su di essi viene effettuata una modifica. In questa guida si darà meno importanza all'invio delle e-mail ed alla la possibilità di utilizzare un nome mnemomino per ogni device, preferendo leggere l'ip fisico della macchina di cui si esegue il backup.
+
+##<a name="Obiettivo"></a>
+## <span style="color: #993300;">**OBIETTIVO**</span>
+
+Giusto per focalizzare l'attenzione sull'obiettivo finale ecco uno screenshot di come sarà alla fine il "servizio di backup" con interfaccia web":
+
+![rancid-2](https://image.ibb.co/eNekkc/rancid_2.png)
+**N.B.**Tutti gli output di testo qui mostrati utilizzati sono frutto di diverse prove eseguite nel tempo quindi ci potrebbero alcune incoerenze di date.
+
+##<a name="InstallazioneServer"></a>
+## <span style="color: #993300;">**Installazione server**</span>
+
+### **Mettere su il server**
+Per motivi legati a compatibilità di sistema  **[vedi OS-specific information](http://www.shrubbery.net/rancid/) ** rispetto al mio hardware ovvero un server i386è stato scelto Ubuntu Server 16.04 i386\.
+link utili:  [guida per installare ubuntu server](https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-server) e il link dove [scaricare ubuntu 16.04 server i386](http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-i386.iso.torrent?_ga=2.22693682.800528712.1516873571-745503264.1470146050).
+
+Durante l'installazione si chiede di installare un utente base, si sceglierà  come nome **user** in modo che sia diverso dall'utente  'rancid' che verrà creato più tardi più tardi. Usare una password molto forte.
+
+## N.B. (la sintassi usata)
+
+*   Comandi preceduti da "$" indicano che si eseguono comandi come un utente generale .
+*   Comandi preceduti da "#" indicano che si debbano eseguire come utente root.
+*   Come editor di testo utilizzerò nano ([installare nano](https://www.hostinger.com/tutorials/how-to-install-and-use-nano-text-editor))
+
+### <span style="color: #993300;">**Configurare la rete**</span>
+
+Avendo bisogno di accedere ad un server collegato in rete, uno dei primi passi dopo un installazione base di UbuntuServer è quella di configurare gli indirizzi di rete. E' meglio configurare un indirizzo statico. Considerando che il nome della interfaccia di rete sia **enp2s1** si editi il file:
+
+`#:nano /etc/netword/interfaces`
+
+ si decommenti l'interfaccia di rete presente ed aggiunga in coda:
+
+    auto enp2s1
+    iface enp2s1 inet static
+    address 10.2.99.21
+    netmask 255.255.255.0
+    gateway 10.2.99.21
+    dns-nameservers 8.8.8.8 8.8.4.4
+
+Alla fine della procedura installare:
+
+
+    `# apt-get install openssh-server screen `
+
+Sarà necessario di riavviare la macchina per verificare che effettivamente sia tutto apposto, se al boot della macchina non si trova l'interfaccia attiva, significa che probabilmente qualcosa è sbagliato nella sintassi, per cui si ricontrollare e/o [si approfondisca meglio](https://help.ubuntu.com/lts/serverguide/network-configuration.html). Ci si assicuri che in questo stato si possa fare il ping su tutte le macchine sulle quali si vuole fare il backup, se ciò non fosse possibile,sarebbe meglio risolvere questa problematica prima di procedere. E' addirittura meglio provare a testare il collegamento ssh o telnet in modo da escludere ogni altra difficolta esterna a rancid.
+
+### <span style="color: #993300;">**Connessione ssh**</span>
+
+Collegarsi al server usando ssh con l'utente di base che è stato configurato in fase d'installazione, e diventare root:
+
+
+`$ssh user@ip-address`
+`$ sudo su`
+`#`
+
+##<a name="Installazione di Rancid su ubuntu i386"></a>
+
+
+##Installazione di Rancid su ubuntu i386
+
+Prima di tutto installare il Subversion Version Control System (aka svn) e telnet:
+
+`# apt-get install subversion telnet `
+
+
+
+
+##**Rancid e le sue dipendenze**
+Ora passiamo all'installazione dello stesso Rancid, avendo scelto ubuntu, non non ci si deve preoccupare più di tanto di gestire le dipendenze, ma si lasci fare al gestore di pacchetti:
+
+`# apt-get install rancid`
+
+Durante la procedura d'installazione:
+*   Potrebbe mostrare un messagio di warning - selezionare e premere INVIO per continuare.
+*   Mostrerà un altro warning riguardo al fare una copia di backup dei dati riguardanti rancid, ma essendo questa la prima installazione, selezioniamo ENTER e continuiamo.
+
+###**Sendmail e alias**
+
+Sebbene come detto sopra non interessa la parte delle mail, comunque conviene configurare gli alias. Si installi quindi sendmail.
+
+`# apt-get install sendmail`
+
+Si aggiunga un alias per l'utente rancid. Di default rancid invia le mail agli utenti:
+
+*   rancid-**nomeDelGruppo**
+*   rancid-admin-**nomeDelGruppo**
+
+Il **nomeDelGruppo** (che si configurerà più avanti) sarà un unico gruppo chiamato "**routers"**, quindi d'ora in poi si farà riferimento a questo unico gruppo e di conseguenza secondo la convenzione utilizzata da rancid  si userànno i seguenti nomi di default.
+
+*   rancid-**routers**
+*   rancid-admin-**routers**
+
+
+Quindi si modifichi il file:
+
+`# nano /etc/aliases`
+
+Aggiungendo in fondo le seguenti voci:
+
+    rancid-routers:         sysadm
+    rancid-admin-routers:   sysadm
+    sysadm:   miamail@mioNomeDominio.it
+
+
+Salvare il file, poi eseguire il comando:
+
+`# newaliases`
+
+Quest'ultimo comando genera un output a schermo. Un  esempio di output corretto è qualcosa del genere:
+
+
+    # /etc/mail/aliases: 3 aliases, longest 20 bytes, 698 bytes total
+
+##<a name="Configurare rancid"></a>
+
+
+## <span style="color: #993300;">Configurare rancid</span>
+
+si editi il seguente file:
+
+`# nano /etc/rancid/rancid.conf`
+
+e trovare le successiva riga, (con nano si può invocare la ricerca con la combinazione di tasti `ctrl+w , INVIO` , poi `ctrl+w` per ogni altra occorrenza) :
+
+    LIST_OF_GROUPS="sl joebobisp"; export LIST_OF_GROUPS
+
+E modificarla secondo le necessità con eventualemente ogni gruppo separato da spazio:
+
+    LIST_OF_GROUPS="routers"; export LIST_OF_GROUPS
+
+(con nessun cancelletto all'inizio della riga, tenendo il testo allineato alla sinistra).
+
+Dato che si vuole usare Subversion e non cvs, si trovi ora la riga che contiene CVSROOT:
+
+    CVSROOT=$BASEDIR/CVS; export CVSROOT
+
+E, cambiaral in:
+
+    CVSROOT=$BASEDIR/svn; export CVSROOT
+
+**N.B.** `il carattere usato "svn" è il minuscolo`.
+
+ Editare la riga contenente il parametro RCSSYS:
+
+    RCSSYS=cvs; export RCSSYS
+
+E, cambiarla in:
+
+    RCSSYS=svn; export RCSSYS
+
+Uscire e salvare il file.
+
+### <span style="color: #993300;">**Creazione di un utente rancid**</span>
+
+
+
+Ora si crei un utente chiamato `rancid`, tale utente sarà utilizzato per eseguire i processi di rancid ed assegnare correttamente i permessi, importanti poichè permetteranno di gestire la sicurezza:
+
+Si proceda a creare l'utente "rancid" nel sistema:
+#Questa comando è forse è inutile perchè in ubuntu è il gestore dei pacchetti che crea l'utente rancid
+`# useradd -d /var/lib/rancid -s /bin/bash rancid`
+
+Impostiamo i permessi della cartella all'utente appena creato:
+
+`# chown -R rancid:rancid /var/lib/rancid`
+
+Facciamo lo stesso per la cartella /var/log/rancid
+
+`# chown -R rancid:rancid /var/log/rancid`
+
+(la cartella /etc/rancid/ resterà di prorietà dell'utente di root.)
+
+**N.B.** I precedenti comandi essendo preceduti da "#" significa che sono eseguiti come utente di root. Ma una volta che Rancid è stato installato, l'utente rancid deve essere il proprietario della sua cartella, per cui è fondamentale assicurarsi che vi siano i permessi corretti. Infine prima di continuare si ricorda che l'accesso all'utente  rancid và eseguita da utente root per cui non è necessario immettere una password.
+
+
+##**N.B. Adesso è molto importante è cambiare l'utente in rancid.**
+
+assicurarsi che carattere in caporiga cambi utente da root # ad utente rancid $.
+
+`# su - rancid`
+
+Si controlli di essere utente rancid:
+
+`$ id`
+
+Si avrà un messaggio simile a questo:
+
+    uid=112(rancid) gid=119(rancid) gruppi=119(rancid)
+
+###<a name="Configurare i metodi di accesso per Rancid"></a>
+
+
+**N.B.continua solo se sei l'utente rancid!**
+
+#### Configurare i metodi di accesso per Rancid in `/var/lib/rancid/.cloginrc`
+
+    $ touch /var/lib/rancid/.cloginrc
+
+Un file di esempio popolato si trova in `/usr/share/doc/rancid/examples/cloginrc.sample`, alcune guide spiegano di copiarsi quel file per familiarizzare con la sintassi ma poi una volta copiato si dovrà decommentare tutti i comandi precedenti perchè potrebbero sovrascrivere quelli da noi inseriti. Assumeremo che il device di esempio abbia come indirizzo **192.168.1.10**, inoltre per una configurazione base si considererà l'accesso tramite telnet, mentre per un accesso normale quello ssh. Si aggiungano, a partire da un file vuoto, le seguenti linee di codice a seconda del tipo di accesso che si vuole configurare:
+
+TELNET (nessun nomeUtente)
+
+    add method * {telnet}
+    add password 192.168.1.10 {pwdDispositivo} {pwdDiEnable}
+
+TELNET (con nomeUtente - nessuna password di ena) , notare che una pasword vuota si esprime con aperta e chiusa graffa '{}'.
+
+    add user **192.168.1.10** manager
+    add method **192.168.1.10** {telnet}
+    add password **192.168.1.10** {pwdDispositivo} {}
+
+**SSH** nomeUtente/Password
+
+    add method * {ssh}
+    add user 192.168.1.10 nomeUtente
+    add password 192.168.1.10 {pwdDispositivo} {pwdDiEnable}
+
+Dove:
+
+*   **pwdDispositivo**= è la password di accesso in telnet;
+*   **pwdEnable**= è la password di enable;
+*   **nomeUtente**= è il nome utente per ssh;
+*   **192.168.1.10** è l'indirizzo di rete del dispositivo da configurare, sostituire con il proprio;
+*   **ssh/telnet** rappresentano il tipo di accesso da configurare .
+
+Uscire e salvare il file.
+
+**N.B** Alcuni device potrebbero non avere la password di enable, ma anche in quel caso bisogna mettere le graffe aperte e chiuse '{}'.
+####E' molto importante proteggere questo file in modo tale che non possa essere da letto nessun altro utente:
+
+    $ chmod 600 /var/lib/rancid/.cloginrc
+
+## <span style="color: #993300;">Testare il login al device del proprio gruppo</span>
+
+E' possibile testare il login verso il device configurato con il comando clogin. Alla prima connessione potrebbe capitare di dovere digitare 'yes' al warning, ma non dovrebbe essere necessario inserire una password affinche l'accesso sia automatico.
+
+`$ /var/lib/rancid/bin/clogin 192.168.1.10`
+
+(sostituire **192.168.1.10** con l'indirizzo del device di rete che si sta configurando). Si otterrà un output simile a questo:
+
+
+    rancid@device:~$ bin/clogin 192.168.1.10
+
+    192.168.1.10
+    spawn telnet 192.168.1.10
+    Trying 192.168.1.10...
+    Connected to 192.168.1.10.
+    Escape character is '^]'.
+    User Access Verification
+    Password:
+    switch>enable
+    Password:
+    switch#
+    switch#
+
+Esci dal login dello switch:
+
+    server#exit
+
+**Inizializare il repository SVN per rancid**
+
+Assicurati di essere l'utente rancid prima di eseguire questa operazione:
+
+    $ id
+
+Dovresti leggere qualcosa del genere:
+
+    uid=112(rancid) gid=119(rancid) gruppi=119(rancid)
+
+Non continuare finche non sei utente rancid. Ora inizializza Il Subversioning (SVN):
+
+    $ /usr/lib/rancid/bin/rancid-cvs
+
+Dovresti leggere qualcosa del genere:
+
+    Committing transaction...
+    Committed revision 1.
+    Checked out revision 1.
+    Updating '.':
+    At revision 1.
+    A         configs
+    Adding         configs
+    Committing transaction...
+    Committed revision 2.
+    A         router.db
+    Adding         router.db
+    Transmitting file data .done
+    Committing transaction...
+    Committed revision 3.
+
+* * *
+
+> <span style="color: #0000ff;">**Esegui questa operazione solo se si hanno problemi:**
+</span> Se quello che hai fatto non funziona perchè ti dà errori, allora ti manca qualche pacchetto di subversion, oppure non c'è qualcosa di non propriamente configurato nei precedenti passaggi. Dovresti verificare che subversion è installato e prima di eseguire di nuov il comando 'rancid-cvs' eseguire i seguenti comandi:
+>
+>     $ exit
+>     # apt-get install subversion
+>     # su - rancid
+>     $ cd /var/lib/rancid
+>     $ rm -rf routers
+>     $ rm -rf svn
+>
+> ovvero: 1) esci e ritorna root (vedi come cambia il carattere); 2)installa subversion; 3) ri-loggati come utente rancid; 4) spostati nella cartella in cui è rancid installato; 5) cancella la cartella contenente il gruppo configurato che nel mio caso è routers; 6) cancella la cartella contenente svn Ora prova ad eseguire di nuovo il comando _rancid-cvs_:
+>
+>     $ /var/lib/rancid/bin/rancid-cvs
+
+* * *
+
+<span style="color: #993300;">**Editiamo il file router.db del nostro gruppo**</span>
+
+    $ nano /var/lib/rancid/routers/router.db
+
+Aggiungere questa riga (NO spaces at the beginning please):
+
+    192.168.1.10;cisco;up
+
+La sintassi di questa riga è la seguente:
+
+*   <device_name>;<device_type>;<state>[;comments]
+
+maggiori informazioni su come compilare questo file si <span style="color: #0000ff;">[trovano qui](http://www.shrubbery.net/rancid/man/router.db.5.html)</span>. **N.B.** dalla versione 3.X di rancid è stata cambiata la sintassi da 'due punti :', a 'punto e virgola ;' . Usciamo e salviamo il file.
+
+##<a name=" Eseguiamo rancid!"></a>
+
+
+
+## Eseguiamo rancid!
+
+Sempre come utente rancid:
+
+    $ /var/lib/rancid/bin/rancid-run
+
+Questa operazione potrebbe impiegare un po di tempo, per cui siate pazienti. Faccio notare che se la sessione ssh resta aperta troppo a lungo, in automatico verrete cacciati fuori ( per ovviare a questo basta appronfondire il[ <span style="color: #0000ff;">tool screen</span>](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-screen-on-an-ubuntu-cloud-server)). Eseguire nuovamente il comando, poichè la prima volta potrebbe non eseguire correttamente il commit:
+
+    $ /var/lib/rancid/bin/rancid-run
+
+## Controlla il file di log di rancid:
+
+    $ cd /var/lib/rancid/logs
+    $ ls -l
+
+... Visualizzare il contenuto dell'ultimo log:
+
+    $ cat routers.*
+
+
+Questo che segue è l'output di un log avvenuto con successo
+
+`$ cat /var/lib/rancid/logs/routers.20180125.091225 `
+
+***
+
+
+    starting: gio 25 gen 2018, 09.12.25, CET
+    proprietà 'svn:ignore' impostata su '.'
+    proprietà 'svn:ignore' impostata su 'configs'
+    Updating '.': Alla revisione 63.
+    Trying to get all of the configs.
+    All routers sucessfully completed.
+    ending: gio 25 gen 2018, 09.12.32, CET
+
+
+* * *
+
+
+
+
+>___
+>####<span style="color: #0000ff;">Eseguire solo se leggi questo warning<span>
+>___
+> **WARNING: Have you forgotten to update the FS in router.db?** Cose significa FS, ebbene significa File Syntax. Dalla versione 3.X di rancid è stata cambiata la sintassi da 'duepunti :', a 'puntoe virgola ;'. Se vi appare questo WARNING significa che vi sta chiedendo se avete dimenticato di aggiornare la FS (File Syntax, ovvero la sintassi del file, all'interno del file router.db.
+
+    WARNING: Have you forgotten to update the FS in router.db?
+    WARNING: Have you forgotten to update the File Syntax in router.db?
+>
+> Ora ridai il comando di nuovo:
+>
+>     $ /usr/lib/rancid/bin/rancid-cvs
+
+* * *
+
+## <span style="color: #993300;">Guardare la configurazione salvata</span>
+
+    $ cd /var/lib/rancid/routers/configs
+    $ less 192.168.1.10
+
+N.B. Usando il comando less per uscire premere "q". Se tutto è andato come si deve, vedrai all'interno il file con la configurazione del device.
+
+## <span style="color: #993300;">Tracciare i cambiamenti</span>
+
+A questo punto facciamo una prova per vedere come sta funzionando. Accediamo nel device ed applichiamo un cambiamento. Accediamo con:
+
+    $ /usr/lib/rancid/bin/clogin 192.168.1.10
+
+Eseguire qualsiasi operazione, per esempio mettere in shutdown una porta. Applicare la modifica e poi uscire con 'exit'. Eseguiamo di nuovo rancid-run
+
+    $ /usr/lib/rancid/bin/rancid-run
+
+Ed andiamo di nuovo a verificare i log ed il config
+
+    $ cat /usr/lib/rancid/log/routersYYYYMMGG.HHMM
+
+N.B. Com'è ovvio che sia da un sistema di subversioning una nuova revisione viene effettuata solo se la nuova configurazione salvata presenta differenze con la configurazione precedente. l'output sarà qualcosa simele a questo:
+
+    rancid@server:~$ cat /var/lib/rancid/logs/routers.20180125.091225
+    starting: gio 25 gen 2018, 09.12.25, CET
+    proprietà ‘svn:ignore’ impostata su ‘.’
+    proprietà ‘svn:ignore’ impostata su ‘configs’
+    Updating ‘.’:
+    Alla revisione 63\.
+
+## Mettiamo in evidenza le differenze
+
+E' molto utile poter visualizzare le differenze tra le revisioni affinche si possa mettere in evidenza cosa è cambiato. Spostiamoci nella cartella configs all'interno del gruppo da noi creato:
+
+    $ cd /var/lib/rancid/routers/configs
+    $ ls -l
+
+Qui si possono visualizzare le configurazioni dei router per i device del gruppo `routers` :
+
+    $ svn log 192.168.1.10
+
+**N.B.** il codice della revisione, si vedranno diversi numeri di revisione come in questo caso r63, r2 and r61. L'ultima revisione è quellla con il numero più alto.
+
+
+	rancid@server:~/routers/configs$ svn log 192.168.1.10
+	----------------------------------------------------------------------
+	r63 | rancid | 2018-01-24 08:24:51 +0100 (mer, 24 gen 2018) | 1 line
+	updates
+	------------------------------------------------------------------------
+	r62 | rancid | 2018-01-23 16:13:44 +0100 (mar, 23 gen 2018) | 1 line
+	updates
+	------------------------------------------------------------------------
+	r61 | rancid | 2018-01-23 16:13:14 +0100 (mar, 23 gen 2018) | 1 line
+	updates
+	------------------------------------------------------------------------
+	r40 | rancid | 2018-01-23 11:21:28 +0100 (mar, 23 gen 2018) | 1 line
+	updates
+	------------------------------------------------------------------------
+	r39 | rancid | 2018-01-23 11:21:22 +0100 (mar, 23 gen 2018) | 1 line
+	new router
+	------------------------------------------------------------------------
+
+
+
+Da questa schermata posso verificare che tra la revisione 62 (r62) e la revisione 61 (r61) c'è solo la differenza di una linea, ovvero la linea che io ho modificato io nel mio precedente intervento sul dispositivo.
+
+In generale pero per mostrare le differenze tra due qualsiasi revisioni, la sintassi è questa:
+
+    $ svn diff -r6:9 192.168.1.10 | less
+    $ svn diff -r8:9 192.168.1.10 | less
+
+In questo modo si riesce a vedere le differenze, ma essendo questo uno strumento testuale non è molto chiaro capire esattamente dove quella particolare linea è cambiata e come. Sempre all'interno della cartella in cui ci troviamo adesso vi è una directory nascosta chiamatad `.svn` - la quale contiene tutte le informazioni relative ai cambiamenti tra le diverse versioni ( revisioni ) dei file che vengono generate ogni qual volta si esegue rancid-run. Importante: Non editare mai a mano la cartella `.svn` ed il suo contenuto.
+
+##<a name="Configurazione di Cron"></a>
+
+
+
+##Configurazione di Cron
+
+Configuriamo rancid affinchè venga eseguito automaticamente usando cron, cron è un sistema disponibile in linux per automatizzare l'esecuzione di lavoro. Per prima cosa accedere di nuovo come utente root:
+
+`$ sudo -s`
+  `#`
+
+In particolare per questo tipo di comando (data la sintassi ostica), è bene affincarsi ad uno strumento che eprmetta di verificare la correttezza della nostra sintassi. Io uso il <span style="color: #0000ff;">[guru di crontab](https://crontab.guru/)</span>, che permette di mostrare le date in cui verra eseguito il comando. Nel mio caso volendo schedulare ogni lunedì mattina alle 4:00am, essa è la seguente:
+
+
+![crontab.guru](https://image.ibb.co/h2u1Qc/crontab_guru.png)
+
+Quindi verificata la sintassi creare o editare il file che si trova in :
+
+`# nano /etc/cron.d/rancid`
+
+Ed aggiungere il seguente testo alla fine del file:
+
+
+```
+# clean out config differ logs
+#questo comando dovrebbe pulire i log ogni tot tempo ma non ci server se i backup sono settimanali xke pesano poco
+#50 23 * * 7 rancid find /var/log/rancid -type f -mtime +2 -exec rm {} \;
+#Esegui rancid ogni settimana il lunedì alle ore 4am
+**0 4 * * MON rancid /usr/lib/rancid/bin/rancid-run**
+```
+
+
+**N.B** le righe precedute  dal carattere `#` sono commenti che preferisco lasciare perchè sono dei commenti ed i comandi necessari per automatizzare la pulizia dei log, da usarle solo se necessario. Esse sono commentate in quanto i log in generale non generano molti dati, quindi di default non è necessario cancellarli con frequenza. Da ora in poi il comando "rancid-run" verra eseguito automaticamente ogni lunedì mattina alle ore 4:00am.
+
+
+___
+___
+
+A questo  punto è tutto pronto e funzionante e meno del fatto che non è molto agevole l'accesso a questi dati. E per questo motivo che bisogna installare un tool grafico ovvero un server web che si poggia su apache2 chiamato ViewVC.
+
+___
+##<a name="Installare ViewVC"></a>
+
+
+
+# Installare ViewVC
+
+Ora aggiungerò Il repository rancid - SVN in ViewVC in modo che tutto quello che abbiamo ottenuto finora sia comodamente accessibile da web, con un interfaccia grafica che permetta un accesso pratico alle risorse, successivametne configurerò la macchian in mdo che tali risorse siano protette da accessi non consentiti. Se sei loggato nella macchina com utente rancid, tornare a utente root. Ricordarsi di digitare il comando 'id' per verificare quale utenteid si possiede in quel preciso momento.
+
+`$ exit`
+`#`
+
+Installare ViewVC:
+
+`# apt-get install viewvc`
+
+Aggiungere i report svn di rancid al file di configurazione di ViewVC nel file di configurazione. Editare il file:
+
+`# nano /etc/viewvc/viewvc.conf`
+
+Cercare la seguente linea e cambiarla come segue;
+
+`svn_roots = rancid: /var/lib/rancid/svn`
+
+Salvare ed uscire. Prossimo passaggio sarà quello di aggiungere l'utente del web-server Apache (www-data) nel gruppo rancid in modo da permettere al web-server Apache di potere accedere alla visualizzazione del repository SVN di rancid.
+
+`# usermod -a -G rancid www-data`
+
+Ora, creare un file di configurazione nella cartella di Apache
+
+`# nano /etc/apache2/conf-available/viewvc.conf`
+
+Aggiungere la configurazione di ViewVC in un nuovo file di configurazione `viewvc.conf`
+
+    Alias       /viewvc-static /etc/viewvc/templates/docroot
+    ScriptAlias /viewvc /usr/lib/cgi-bin/viewvc.cgi
+
+Salvare ed uscire dal file. Procedi abilitando ViewVC attraverso Apache (importante è avviare anche avviare il modulo CGI di Apache). Infine riavviare il server
+
+`# a2enmod cgi`
+`# a2enconf viewvc.conf`
+`# systemctl restart apache2`
+
+Nvigare dal proprio web browser tra i file di rancid, collegandosi all'indirizzo configurato:
+
+*   [http://192.168.1.10/viewvc/rancid/](http://192.168.1.10/viewvc/rancid/)
+
+
+Vedrai una schermata come questa:
+
+ ![Schermata del 2018-01-25 10-56-36](https://preview.ibb.co/mmSD5c/schermata_del_2018_01_25_10_56_36.png)
+
+Naviga tra i file che si trovano all'interno dell cartella `routers/configs` . Qui puoi vedere tutte le configurazioni dei tuoi router (o device di rete supportati) appartenenti al gruppo rancid. Per non dovere ricordare il percorso esatto, quindi per comodità ho personalizzato la home page di test di apache2 `/var/www/html/index.html`, con un autoredirect link in html, per fare ciò, modificare quel file cancellando il testo presente ed inserire questo testo:
+
+	<meta http-equiv="refresh" content="0; URL='http://10.2.99.21/viewvc/rancid/'" />
+
+
+
+
+# Sicurezza per  ViewVC
+
+Non volendo che l'intero internet possa accere ai propri file di configurazione. Un passagio non incluso è quello di forzare l'uso dell'accesso https tramite certificati. Modificare i file di configurazione di Apache per ViewVC.
+
+`# cd /etc/apache2/conf-enabled`
+`# nano viewvc.conf`
+
+Aggiungere la seguente configurazione alla fine del file:
+
+
+
+	AuthName "Nagios Access"
+	AuthType Basic
+	AuthUserFile /etc/viewvc/.htpasswd
+	require valid-user
+
+Salva ed Esci. Prossimo passaggio è quello di creare un file `.htpasswd` nella cartella `/etc/viewvc directory` :
+
+`# cd /etc/viewvc`
+`# htpasswd -c .htpasswd sysadm`
+
+Fornisci un nome utente ed una password per l'utenteProvide a password for the user sysadm (maybe the class password?). You should see this:
+
+    New password:
+    Re-type new password:
+    Adding password for user sysadm
+
+Ed ora, affinchè i cambiamenti possano avvenire, riavviamo il web server Apache2:
+
+`# systemctl restart apache2`
+
+Ri-prova a navigare alla pagina webSVN all'indirizzo [http://192.168.1.10/viewvc/rancid](http://192.168.1.10/viewvc/rancid) e per essere in grado di vedere la pagina ti verrà chiesto di inserire un nomeUtente ed una Password.
+
+
+Rancid Adesso è configurato, funzionante e sicuro.
+
+
+---
+---
+##<a name="Come aggiungere altri dispositivi di cui fare il backup"></a>
+
+#Come aggiungere altri dispositivi di cui fare il backup
+(da fare solo dopo avere installato tutto)
+
+Ora che sono state fatte tutte le prove del caso per verificare che il nostro software è configurato correttamente ed esegue correttametne le sue funzionalità, è il caso di aggiungere altri dispositivi, torniamo ad editare il file router.db contenuto nel gruppo routers.
+
+Importante diventare utente root e poi utente rancid (carattere $ all'inizion del comando).
+
+Passo 0)
+Collegarsi in ssh alla macchina come utente base e poi:
+
+`$sudo su`
+`#su rancid`
+`$cd`
+
+Passo 1)
+Ora (da utente rancid) editiamo il file:
+
+
+     $ nano /var/lib/rancid/NOMEGRUPPO/router.db
+
+aggiungi altri eventiali dispositivi con differenti indirizzi ip.
+
+    192.168.1.11;cisco;up
+    192.168.1.11;cisco;up
+    192.168.1.13;cisco;up
+    192.168.1.14;cisco;up
+
+N.B. Assicurati che le righe siano allineate alla sinistra del file e non vi siano spazi, puoi sempre commentare usando il carattere '#' come primo carattere della riga (oppoure mettere down il dispositivo).
+
+Passo 2)
+
+Editare il file di configurazione di rancid aggiungere nel file di configurazione il motodo e le credenziali per il nuvo apparato ( Vedi sezione precedente:   [Configurare i metodi di accesso per Rancid](#Configurare i metodi di accesso per Rancid) ).
+
+`$ nano /var/lib/rancid/.cloginrc`
+
+Di seguito un esempio
+
+    add method *            {telnet}
+    add password 192.168.1.11        {password}        {passwordDiEnable}
+
+    #questa che segue è la sintassi per un allied telesis running on AW+
+    add user 192.168.1.12 manager
+    add method 192.168.1.12 {telnet}
+    add password 192.168.1.12 {password} {}
+
+    #questi sono due sw con diverso ip
+    add method *            {telnet}
+    add password 192.168.1.13      {password}        {passwordDiEnable}
+
+    add method *            {telnet}
+    add password 192.168.1.14        {password}        {passwordDiEnable}
+
+    #prossimo modello
+
+
+Passo 3)
+Verificare che le credenziali inserite siano corrette, per ogni singolo device
+
+`$ /var/lib/rancid/bin/clogin 192.168.1.11`
+
+
+Passo 4)
+ Eseguire 'rancid-run':
+
+`$ /usr/lib/rancid/bin/rancid-run`
+
+Adesso dovrebbe impiegarci un minuto o poco di più, quindi essere pazienti ed attenti alla connessione ssh che dopo un pò di secondi cade automaticamente.
+
+Passo 5)
+
+Controllare i logs per verificare se c'è stato qualche problema:
+
+`$ cd /var/lib/rancid/logs`
+`$ ls -l`
+
+... Visualizzare l'ultimo file generato e leggerlo a schermo. Esso dovrebbe essere l'ultimo file mostrato dal comendo "ls -l" :
+
+`$ less NOMEGRUPPO.YYYYMMDD.HHMMSS`
+
+Leggendo tale file vedranno tutta una serie di informazioni di stati che indicano che i router appena dichiarati sono stati aggiungi al sistema di controllo del versioning .
+
+Passo 6)
+Guardare da interfaccia Web le nuove versioni delle configurazioni, collegandosi all'indirizzo:
+`http://RancidIP/viewvc`
+
+## Guardare le configurazioni
+
+`$ cd /var/lib/rancid/routers/configs`
+
+A questo punto è possibile vedere tutte le configurazioni più aggiornatedei backup relativi ai dispositivi confiurati. E' possibile visualizzarle tutte insieme tramite il comando less:
+
+`$ less *`
+
+Per navigare tra i file, premere spazione per navigare tra i file e poi premere ":n" to view the next file, oppure "p" per tornare al precedente file. Infine premere "q" per chiudere, in qualsiasi momento. Se tutto è stato eseguito correttamente, potrai vedere le configurazioni di tutti i device.
+
+## Ri-eseguire rancid quando serve (manualmente)
+
+In generale adesso la nostra macchina è configurata affinchè esegua in automatico i backup, ma nel caso in  cu serva possiamo forzare l'esecuzione RANCID manualmente, per fare ciò è sufficiente accedere alla macchina, diventare utente rancid e poi eseguire il comando:
+
+`$ /usr/lib/rancid/bin/rancid-run`
+
+Come al solito potrebbe volerci un pò, quindi si deve essere pazienti.
+
+##<a name="Sicurezza per il server"></a>
+
+
+
+##Sicurezza per il server
+
+ Raccolgo qui tutte le informazioni di sicurezza, una volta arrivati alla fine di questa installazione, su questa macchina:
+*   E' attivo un **server cvs**, quindi meglio andare sono andato nel file di configurazione  e disabilitare l'esposizione della porta. Facendo un elenco dei servizi esposti adesso si vedrà una cosa simile:
+
+`# netstat -elpnt`
+
+    :~# netstat -elpnt
+    Connessioni Internet attive (solo server)
+    Proto CodaRic CodaInv Indirizzo locale        Indirizzo remoto       Stato       User       Inode       PID/Program name
+    tcp        0      0 127.0.0.1:587           0.0.0.0:*               LISTEN      0          17544       1367/sendmail: MTA:
+    tcp        0      0 192.168.122.1:53        0.0.0.0:*               LISTEN      0          18542       1713/dnsmasq    
+    tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      0          121621      21751/sshd      
+    tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      0          17543       1367/sendmail: MTA:
+    tcp6       0      0 :::80                   :::*                    LISTEN      0          78200       14023/apache2   
+    tcp6       0      0 :::22                   :::*                    LISTEN      0          121623      21751/sshd   
+
+*   Per l'**accesso web** attualmente usiamo il protocollo http (e ci autentichiamo con username e password unici per apache), si potrebbe valutare https per forzare l'uso di certificati.
+*   L'accesso **ssh** da root è disabilitato, si può accedere solo con l'utente normale via ssh per il quale è stata messa una password forte.
+*   la sicurezza per il contenuto dei file è data dal raid1.
+
+##<a name="Elenco file di Rancid"></a>
+
+
+
+##Elenco file di Rancid
+Le cartelle che ho utilizzato sono
+
+
+
+    /var/lib/rancid
+    /etc/rancid
+    /usr/share/doc/rancid
+    /var/log/rancid
+    /etc/hosts
+    /etc/aliases
+
+    Gli eseguibili si trovano nella cartella:
+    /usr/lib/rancid
+
+
+ * * *
+
+####Contenuto cartelle Rancid
+
+<details>
+
+<summary> contenuto della cartella`/var/lib/rancid` </summary>
+
+    $ tree -L 3 /var/lib/rancid
+    .
+    ├── bin -> /usr/lib/rancid/bin
+    ├── checkout
+    │   ├── configs
+    │   ├── CVS
+    │   ├── router.db
+    │   ├── routers.all
+    │   ├── routers.down
+    │   └── routers.up
+    ├── commit
+    │   ├── configs
+    │   ├── CVS
+    │   ├── router.db
+    │   ├── routers.all
+    │   ├── routers.down
+    │   └── routers.up
+    ├── dead.letter
+    ├── downreport
+    ├── getipacctg
+    ├── logs -> ../../log/rancid
+    ├── rancid-cvspurge
+    ├── routers
+    │   ├── configs
+    │   ├── router.db
+    │   ├── routers.all
+    │   ├── routers.down
+    │   ├── routers.up
+    │   └── runcount
+    ├── rtrfilter
+    ├── svn
+    │   ├── conf
+    │   ├── db
+    │   ├── format
+    │   ├── hooks
+    │   ├── locks
+    │   └── README.txt
+    └── update
+    ├── configs
+    ├── CVS
+    ├── router.db
+    ├── routers.all
+    ├── routers.down
+    └── routers.up
+
+</details>
+
+
+<details>
+<summary> contenuto relativo alla cartella`/etc/rancid/` </summary>
+
+    root@server:~# tree /etc/rancid/
+    /etc/rancid/
+    ├── rancid.conf
+    ├── rancid.conf.back
+    ├── rancid.conf.ORIGINAL
+    ├── rancid.types.base
+    └── rancid.types.conf
+
+    0 directories, 5 files
+    root@server:~#
+
+
+</details>
+
+
+
+<details>
+<summary> contenuto relativo alla cartella`/usr/share/doc/rancid/` </summary>
+
+    rancid@server:~$  tree /usr/share/doc/rancid/
+    /usr/share/doc/rancid/
+    ├── BUGS
+    ├── changelog.Debian.gz
+    ├── CHANGES.gz -> changelog.gz
+    ├── cisco-load.exp.gz
+    ├── cisco-reload.exp.gz
+    ├── copyright
+    ├── examples
+    │   └── cloginrc.sample
+    ├── FAQ.gz
+    ├── NEWS.Debian.gz
+    ├── README.Debian
+    ├── README.gz
+    ├── README.misc
+    ├── Todo.gz
+    └── UPGRADING.gz
+    /usr/share/doc/rancid/
+    ├── BUGS
+    ├── changelog.Debian.gz
+    ├── CHANGES.gz -> changelog.gz
+    ├── cisco-load.exp.gz
+    ├── cisco-reload.exp.gz
+    ├── copyright
+    ├── examples
+    │   └── cloginrc.sample
+    ├── FAQ.gz
+    ├── NEWS.Debian.gz
+    ├── README.Debian
+    ├── README.gz
+    ├── README.misc
+    ├── Todo.gz
+    └── UPGRADING.gz
+
+    2 directories, 28 files
+@:~$
+
+
+
+</details>
+
+##<a name="Approfondimenti per il futuro"></a>
+
+
+##Approfondimenti per il futuro
+
+
+
+*   fare o cercare uno schema logico su rancid, permette di
+*   Vedere come fare se volessi fare il backup stesso della macchina oppure la migrazione da una macchina attiva ad una di backup (rsync a caldo). Si può fare secondo me perchè non c'è nulla che sia run.
+*   una cosa utile potrebbe essere migrare il servizio in modo da farlo diventare un immagine per una macchiana virtuale e quindi predisporlo per "girare in cloud".
+
+*	[backup more things with rancid](https://www.google.it/search?client=ubuntu&channel=fs&q=backup+more+things+with+rancid&ie=utf-8&oe=utf-8&gfe_rd=cr&dcr=0&ei=d4F9WsCgK-nBXpvPucgF)
+
+*    [CISCO: Backup and Restore configuration file](https://www.cisco.com/c/en/us/support/docs/ios-nx-os-software/ios-software-releases-122-mainline/46741-backup-config.html#ab)
+
+##<a name="Sitografia"></a>
+
+
+
+##Sitografia
+
+####Sito Ufficiale
+*	[http://www.shrubbery.net/rancid/](http://www.shrubbery.net/rancid/)
+*	[Rancid FAQ](http://www.shrubbery.net/rancid/FAQ)
+*	[Rancid Mailing List](http://www.shrubbery.net/mailman/listinfo/rancid-discuss)
+####Link Utilizzati
+*	[http://www.dslreports.com/faq/17984](http://www.dslreports.com/faq/17984)
+*	[Ubuntu 16.04 – Rancid, CVS and CVSweb Installation and Setup – Pass the Bit](https://passthebit.com/2017/01/07/ubuntu-16-04-rancid-cvs-and-cvsweb-installation-and-setup/)
+*	[Installing RANCID on Ubuntu 10.04 LTS — Evil Routers](http://evilrouters.net/2010/05/31/installing-rancid-on-ubuntu-10-04-lts/)
+*	[nsrc-org workshops 2017](https://nsrc.org/workshops/2017/apricot2017/nmm/netmgmt/en/rancid/exercises-rancid.html)
+*	[Installing and configuring Rancid ](http://www.itnotes.eu/?p=365)
+*	[Setup CVSweb for use with Rancid](http://www.itnotes.eu/?p=484)
+*	[Installation and setup of CVS on Ubuntu. ](http://www.itnotes.eu/?p=358)
+*	[CVSweb - Community Help Wiki](https://help.ubuntu.com/community/CVSweb)
+*	[RANCID – Ubuntu How-to – Installation, device bulk imports & SSH setup | Harbinger's Hollow](https://travelingfrontiers.wordpress.com/2010/05/13/rancid-ubuntu-rancid-how-to-setup-bulk-device-imports/)
+*	[TomsBlog · Backup Cisco config with Rancid and an unprivileged user](http://www.toms-blog.com/post/backup-cisco-config-with-rancid-with-unprivileged-user/)
+*	[Rancid - The Easy Tutorial - Tutorial](http://openmaniak.com/rancid_tutorial.php)
+*	[apache2 - cgi-bin not working - Ask Ubuntu](https://askubuntu.com/questions/403067/cgi-bin-not-working)
+*	[crontab.guru - the cron schedule expression editor](https://crontab.guru/)
+
+
+Guida scritta il 27 febbraio 2018
