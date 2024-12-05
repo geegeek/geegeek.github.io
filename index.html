@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="https://geegeek.github.io/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://geegeek.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-Configurazione-di-un-server-ssh-su-subuntu-220.04" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/" class="article-date">
+  <time class="dt-published" datetime="2024-12-04T15:12:53.000Z" itemprop="datePublished">2024-12-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>►<a class="article-category-link" href="/categories/Linux/SSH/">SSH</a>►<a class="article-category-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/">Configurazione di un server ssh su su ubuntu-220.04</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Quando si installa un server SSH su Ubuntu 22.04, è fondamentale comprendere le differenze tra i vari file di configurazione e come essi interagiscono tra loro. Questa guida ti aiuterà a navigare attraverso questi file, spiegando le loro funzioni e come applicare le impostazioni desiderate.</p>
+<h2 id="Introduzione-ai-File-di-Configurazione-SSH"><a href="#Introduzione-ai-File-di-Configurazione-SSH" class="headerlink" title="Introduzione ai File di Configurazione SSH"></a>Introduzione ai File di Configurazione SSH</h2><p>Dopo aver installato <code>openssh-server</code>, troverai diversi file e directory all’interno di <code>/etc/ssh/</code>:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/etc/ssh/</span><br><span class="line">├── moduli</span><br><span class="line">├── ssh_config</span><br><span class="line">├── ssh_config.d</span><br><span class="line">├── sshd_config</span><br><span class="line">├── sshd_config.d</span><br><span class="line">│   └── 50-cloud-init.conf</span><br><span class="line">├── ssh_host_ecdsa_key</span><br><span class="line">├── ssh_host_ecdsa_key.pub</span><br><span class="line">├── ssh_host_ed25519_key</span><br><span class="line">├── ssh_host_ed25519_key.pub</span><br><span class="line">├── ssh_host_rsa_key</span><br><span class="line">├── ssh_host_rsa_key.pub</span><br><span class="line">└── ssh_import_id</span><br></pre></td></tr></table></figure>
+
+<h3 id="Differenza-tra-ssh-config-e-sshd-config"><a href="#Differenza-tra-ssh-config-e-sshd-config" class="headerlink" title="Differenza tra ssh_config e sshd_config"></a>Differenza tra <code>ssh_config</code> e <code>sshd_config</code></h3><ul>
+<li><p><strong><code>ssh_config</code></strong>: Questo file contiene la configurazione <strong>del client SSH</strong>. Ogni volta che si utilizza un client SSH per connettersi a un server, le impostazioni vengono lette da questo file.</p>
+</li>
+<li><p><strong><code>sshd_config</code></strong>: Questo file contiene la configurazione <strong>del server SSH</strong>. Definisce come il server SSH accetta e gestisce le connessioni in entrata.</p>
+</li>
+</ul>
+<p>È importante non confondere i due: modificare <code>ssh_config</code> influenzerà solo le connessioni in uscita dal tuo server, mentre modificare <code>sshd_config</code> cambierà il comportamento del server SSH stesso.</p>
+<h2 id="Il-Ruolo-della-Directory-sshd-config-d"><a href="#Il-Ruolo-della-Directory-sshd-config-d" class="headerlink" title="Il Ruolo della Directory sshd_config.d"></a>Il Ruolo della Directory <code>sshd_config.d</code></h2><p>All’interno di <code>/etc/ssh/</code>, noterai la presenza della directory <code>sshd_config.d</code>. Questa directory è stata introdotta per consentire una gestione modulare e più flessibile delle configurazioni.</p>
+<ul>
+<li><p><strong>File di override</strong>: I file all’interno di <code>sshd_config.d</code> possono sovrascrivere le impostazioni definite in <code>sshd_config</code>. Ad esempio, il file <code>50-cloud-init.conf</code> potrebbe contenere configurazioni specifiche generate durante l’installazione del server.</p>
+</li>
+<li><p><strong>Ordine di applicazione</strong>: Le configurazioni vengono lette in ordine alfabetico. Se hai più file, le impostazioni nei file successivi possono sovrascrivere quelle precedenti.</p>
+</li>
+</ul>
+<p>Questo meccanismo è utile per gestire configurazioni complesse o per applicare impostazioni specifiche senza modificare il file principale <code>sshd_config</code>, facilitando aggiornamenti e manutenzione.</p>
+<h2 id="Applicazione-delle-Impostazioni-al-Server-SSH"><a href="#Applicazione-delle-Impostazioni-al-Server-SSH" class="headerlink" title="Applicazione delle Impostazioni al Server SSH"></a>Applicazione delle Impostazioni al Server SSH</h2><p>Per configurare il tuo server SSH con le impostazioni desiderate, puoi seguire questi passi:</p>
+<h3 id="1-Modifica-delle-Impostazioni"><a href="#1-Modifica-delle-Impostazioni" class="headerlink" title="1. Modifica delle Impostazioni"></a>1. Modifica delle Impostazioni</h3><p>Apri il file <code>/etc/ssh/sshd_config</code> con un editor di testo, ad esempio <code>nano</code>:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nano /etc/ssh/sshd_config</span><br></pre></td></tr></table></figure>
+
+<p>Aggiungi o modifica le seguenti linee per applicare le tue configurazioni:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PasswordAuthentication yes</span><br><span class="line">PubkeyAuthentication yes</span><br><span class="line">ChallengeResponseAuthentication no</span><br><span class="line">UsePAM yes</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-Verifica-dei-File-in-sshd-config-d"><a href="#2-Verifica-dei-File-in-sshd-config-d" class="headerlink" title="2. Verifica dei File in sshd_config.d"></a>2. Verifica dei File in <code>sshd_config.d</code></h3><p>Controlla se nella directory <code>sshd_config.d</code> esistono file che potrebbero sovrascrivere queste impostazioni. In particolare, verifica <code>50-cloud-init.conf</code> o altri file presenti.</p>
+<p>Apri il file per esaminarne il contenuto:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf</span><br></pre></td></tr></table></figure>
+
+<p>Se trovi impostazioni che contrastano con quelle che hai appena impostato in <code>sshd_config</code>, puoi:</p>
+<ul>
+<li><p><strong>Modificare il file in <code>sshd_config.d</code></strong>: Cambiare le impostazioni direttamente nel file di override.</p>
+</li>
+<li><p><strong>Commentare le linee</strong>: Aggiungi un <code>#</code> all’inizio delle linee per disabilitarle.</p>
+</li>
+</ul>
+<h3 id="3-Riavvio-del-Servizio-SSH"><a href="#3-Riavvio-del-Servizio-SSH" class="headerlink" title="3. Riavvio del Servizio SSH"></a>3. Riavvio del Servizio SSH</h3><p>Dopo aver apportato le modifiche, è necessario riavviare il servizio SSH per applicarle:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl restart sshd</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-Verifica-delle-Modifiche"><a href="#4-Verifica-delle-Modifiche" class="headerlink" title="4. Verifica delle Modifiche"></a>4. Verifica delle Modifiche</h3><p>Per assicurarti che le impostazioni siano state applicate correttamente, puoi utilizzare il seguente comando:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sshd -T | grep -E &#x27;permitrootlogin|passwordauthentication|pubkeyauthentication|challengeresponseauthentication|usepam&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>Questo mostrerà le impostazioni attualmente in uso per i parametri specificati.</p>
+<h2 id="Comprendere-l’Evoluzione-dei-Permessi"><a href="#Comprendere-l’Evoluzione-dei-Permessi" class="headerlink" title="Comprendere l’Evoluzione dei Permessi"></a>Comprendere l’Evoluzione dei Permessi</h2><p>L’introduzione della directory <code>sshd_config.d</code> rappresenta un’evoluzione nella gestione dei permessi e delle configurazioni. Permette agli amministratori di:</p>
+<ul>
+<li><p><strong>Modularizzare le configurazioni</strong>: Separare le impostazioni in file diversi per una migliore organizzazione.</p>
+</li>
+<li><p><strong>Facilitare gli aggiornamenti</strong>: Evitare conflitti durante gli aggiornamenti del sistema che potrebbero sovrascrivere <code>sshd_config</code>.</p>
+</li>
+<li><p><strong>Gestire le configurazioni in modo più sicuro</strong>: Ridurre il rischio di errori modificando solo i file necessari.</p>
+</li>
+</ul>
+<p>È essenziale comprendere come queste directory e file interagiscono per gestire efficacemente il tuo server SSH.</p>
+<h2 id="Conclusione"><a href="#Conclusione" class="headerlink" title="Conclusione"></a>Conclusione</h2><p>Configurare correttamente il server SSH è cruciale per la sicurezza e l’efficienza del tuo sistema. Comprendere le differenze tra <code>ssh_config</code> e <code>sshd_config</code>, così come il ruolo della directory <code>sshd_config.d</code>, ti permetterà di gestire le impostazioni in modo consapevole e sicuro.</p>
+<p>Assicurati sempre di verificare le modifiche e di comprend</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/" data-id="cm4bmhoew0000p4j9bwxt9ph2" data-title="Configurazione di un server ssh su su ubuntu-220.04" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-L-importanza-della-condivisione-un-viaggio-da-sistemista" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/" class="article-date">
+  <time class="dt-published" datetime="2024-10-31T15:12:53.000Z" itemprop="datePublished">2024-10-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/">L&#39;importanza della condivisione: un viaggio da sistemista</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Da sistemista, ho sempre creduto che la base del progresso nel nostro campo risieda nella condivisione. Ogni giorno, ci troviamo di fronte a nuove sfide e a tecnologie in continua evoluzione. Ma come possiamo affrontarle efficacemente? La risposta è semplice: attingendo dalle esperienze e dalle conoscenze degli altri.</p>
+<h2 id="Il-seme-della-curiosita"><a href="#Il-seme-della-curiosita" class="headerlink" title="Il seme della curiosità"></a>Il seme della curiosità</h2><p>Quando entriamo in contatto con nuove idee o strumenti, spesso sperimentiamo un momento di rivelazione. È quel “clic” che ci spinge a voler sapere di più, a voler padroneggiare quella nuova conoscenza. Questo è ciò che chiamo il seme della curiosità.</p>
+<p>Quando condividiamo il nostro sapere, piantiamo questi semi nella mente di altri, stimolando la loro curiosità. E, allo stesso tempo, possiamo raccogliere i frutti delle esperienze altrui, amplificando così le nostre competenze.</p>
+<h2 id="Condividere-per-crescere"><a href="#Condividere-per-crescere" class="headerlink" title="Condividere per crescere"></a>Condividere per crescere</h2><p>Io credo fermamente che ogni linea di codice, ogni configurazione che realizzo, debba essere disponibile per altri. Non perché io sia sicuro che il mio lavoro sia perfetto, ma perché è un modo per archiviare le mie esperienze e facilitare l’apprendimento altrui.</p>
+<p>La condivisione non è solo un atto altruistico; è un’opportunità per ricevere feedback e migliorare. Ogni volta che qualcuno utilizza ciò che ho condiviso, ho la possibilità di apprendere e crescere.</p>
+<h2 id="Dovrei-condividere-anche-le-mie-soluzioni-imperfette"><a href="#Dovrei-condividere-anche-le-mie-soluzioni-imperfette" class="headerlink" title="Dovrei condividere anche le mie soluzioni imperfette?"></a>Dovrei condividere anche le mie soluzioni imperfette?</h2><p>Assolutamente sì! È importante ricordare che nessuno di noi è perfetto. Ogni volta che scegliamo di non condividere le nostre soluzioni, perdiamo un’occasione preziosa di imparare e di contribuire a una comunità più ampia.</p>
+<p>La verità è che le nostre esperienze, anche quelle imperfette, possono ispirare e aiutare gli altri a superare le loro sfide. Quindi, iniziamo a condividere! Ogni volta che lo facciamo, piantiamo nuovi semi di curiosità e alimentiamo il ciclo dell’apprendimento.</p>
+<p>In conclusione, nel mondo IT, il progresso non è mai un viaggio solitario. È una rete di scambio continuo di idee e conoscenze. Abbracciamo la condivisione e vediamo dove ci porterà.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/" data-id="cm4bmhof60001p4j9hlog3gf2" data-title="L&#39;importanza della condivisione: un viaggio da sistemista" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/practice/" rel="tag">practice</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/10/31/hello-world/" class="article-date">
+  <time class="dt-published" datetime="2024-10-31T14:36:48.420Z" itemprop="datePublished">2024-10-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/10/31/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/10/31/hello-world/" data-id="cm4bmhofb0004p4j91dm85liv" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/practice/" rel="tag">practice</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Configurazione/" style="font-size: 10px;">Configurazione</a> <a href="/tags/SSH/" style="font-size: 10px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 10px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 10px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 10px;">Ubuntu 22.04</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/">Configurazione di un server ssh su su ubuntu-220.04</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/">L&#39;importanza della condivisione: un viaggio da sistemista</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/31/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
