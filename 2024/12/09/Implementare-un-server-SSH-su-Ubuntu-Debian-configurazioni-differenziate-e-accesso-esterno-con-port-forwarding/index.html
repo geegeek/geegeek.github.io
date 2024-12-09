@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding | Geegeek&#39;xo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Implementare un server SSH su Ubuntu&#x2F;Debian, configurazioni differenziate e accesso esterno con port forwarding">
+<meta property="og:url" content="https://geegeek.github.io/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/index.html">
+<meta property="og:site_name" content="Geegeek&#39;xo">
+<meta property="og:description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-12-09T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-12-09T11:35:11.510Z">
+<meta property="article:author" content="geegeek">
+<meta property="article:tag" content="ssh">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="networking">
+<meta property="article:tag" content="sicurezza">
+<meta property="article:tag" content="automazione">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Geegeek'xo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Geegeek&#39;xo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://geegeek.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/" class="article-date">
+  <time class="dt-published" datetime="2024-12-09T00:00:00.000Z" itemprop="datePublished">2024-12-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma esploreremo una strategia di configurazione modulare utilizzando la directory <code>sshd_config.d</code>. Questo approccio consente di creare differenti casistiche di accesso in base alla rete di provenienza, al metodo di autenticazione e all’utente che tenta di collegarsi. Inoltre, vedremo come:</p>
+<ul>
+<li>Limitare gli accessi esterni a determinati utenti e chiavi pubbliche, filtrando per indirizzi IP di origine.</li>
+<li>Permettere, da rete interna, l’accesso anche con password per tutti gli utenti.</li>
+<li>Integrare firewall e fail2ban per mitigare i tentativi di accesso non autorizzati.</li>
+<li>Esporre la porta SSH su una porta alta tramite port forwarding, aumentandone la sicurezza.</li>
+<li>Preparare il terreno per automatizzare questi processi in futuro.</li>
+</ul>
+<p>Assumeremo i seguenti prerequisiti:</p>
+<ul>
+<li>Il server è basato su Ubuntu&#x2F;Debian con <code>sudo</code> abilitato per l’utente di amministrazione.</li>
+<li>OpenSSH Server è installato.</li>
+<li>Un firewall (ad esempio <code>ufw</code>) è attivo e configurato.</li>
+<li>Fail2ban è installato per prevenire i tentativi di brute-force.</li>
+<li>Il server dispone di un IP interno (LAN) e di un IP pubblico (o di un router con port forwarding configurabile).</li>
+<li>L’utente di amministrazione appartiene al gruppo <code>sudo</code>.</li>
+</ul>
+<h2 id="Perche-adottare-una-configurazione-modulare-con-sshd-config-d"><a href="#Perche-adottare-una-configurazione-modulare-con-sshd-config-d" class="headerlink" title="Perché adottare una configurazione modulare con sshd_config.d"></a>Perché adottare una configurazione modulare con sshd_config.d</h2><p>Il file principale <code>/etc/ssh/sshd_config</code> definisce il comportamento globale del server SSH. Tuttavia, utilizzando la directory <code>/etc/ssh/sshd_config.d</code>, possiamo inserire file aggiuntivi che sovrascrivono o integrano la configurazione di base. Questo approccio modulare permette di mantenere il file principale pulito e di organizzare le diverse casistiche di accesso in file separati. È particolarmente utile quando si gestiscono scenari complessi e si ha necessità di apportare modifiche incrementali senza rischiare di compromettere l’intera configurazione.</p>
+<h2 id="Configurazione-di-base-di-OpenSSH"><a href="#Configurazione-di-base-di-OpenSSH" class="headerlink" title="Configurazione di base di OpenSSH"></a>Configurazione di base di OpenSSH</h2><h3 id="Installazione"><a href="#Installazione" class="headerlink" title="Installazione"></a>Installazione</h3><p>Se non lo avete già fatto, procedete all’installazione:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install openssh-server</span><br></pre></td></tr></table></figure>
+
+<p>Il servizio <code>sshd</code> sarà avviato e abilitato automaticamente.</p>
+<h3 id="Configurazione-del-firewall-UFW"><a href="#Configurazione-del-firewall-UFW" class="headerlink" title="Configurazione del firewall (UFW)"></a>Configurazione del firewall (UFW)</h3><p>Assicuratevi che il firewall <code>ufw</code> sia installato e attivato:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install ufw</span><br><span class="line"><span class="built_in">sudo</span> ufw <span class="built_in">enable</span></span><br></pre></td></tr></table></figure>
+
+<p>Per consentire la connessione sulla porta SSH standard (22), eseguite:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ufw allow 22/tcp</span><br></pre></td></tr></table></figure>
+
+<p>Successivamente, quando imposteremo un port forwarding su una porta differente, modificheremo le regole di conseguenza.</p>
+<h3 id="Configurazione-di-fail2ban"><a href="#Configurazione-di-fail2ban" class="headerlink" title="Configurazione di fail2ban"></a>Configurazione di fail2ban</h3><p>Fail2ban blocca gli indirizzi IP che tentano di eseguire accessi non autorizzati (brute-force). Se non presente:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install fail2ban</span><br></pre></td></tr></table></figure>
+
+<p>Nella configurazione predefinita, fail2ban monitorerà il file di log di SSH e bloccherà automaticamente gli IP che generano troppi tentativi falliti. È possibile personalizzare <code>/etc/fail2ban/jail.local</code> per definire tempi di ban, numero di tentativi e altro. Un esempio basilare (da aggiungere o modificare in <code>/etc/fail2ban/jail.local</code>):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[sshd]</span><br><span class="line">enabled = true</span><br><span class="line">port = 22</span><br><span class="line">filter = sshd</span><br><span class="line">logpath = /var/log/auth.log</span><br><span class="line">maxretry = 5</span><br><span class="line">findtime = 600</span><br><span class="line">bantime = 3600</span><br></pre></td></tr></table></figure>
+
+<p>Dopo aver modificato i parametri:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart fail2ban</span><br></pre></td></tr></table></figure>
+
+<p>Con questa configurazione di base, fallimenti ripetuti di autenticazione verranno puniti con il blocco temporaneo dell’IP.</p>
+<h3 id="Gestione-utenti-e-privilegi-sudo"><a href="#Gestione-utenti-e-privilegi-sudo" class="headerlink" title="Gestione utenti e privilegi sudo"></a>Gestione utenti e privilegi sudo</h3><p>L’utente amministrativo dovrebbe appartenere al gruppo <code>sudo</code>. Se state utilizzando un utente diverso, potete aggiungerlo al gruppo:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> adduser mio_utente</span><br><span class="line"><span class="built_in">sudo</span> usermod -aG <span class="built_in">sudo</span> mio_utente</span><br></pre></td></tr></table></figure>
+
+<p>In questo modo <code>mio_utente</code> potrà eseguire comandi <code>sudo</code> e gestire la configurazione del sistema.</p>
+<h2 id="Creazione-di-scenari-differenziati"><a href="#Creazione-di-scenari-differenziati" class="headerlink" title="Creazione di scenari differenziati"></a>Creazione di scenari differenziati</h2><p>L’obiettivo è creare due casi d’uso:</p>
+<ol>
+<li><p><strong>Accessi dall’esterno:</strong>  </p>
+<ul>
+<li>Limitati a specifici utenti (ad esempio <code>deploy</code>)  </li>
+<li>Limitati a specifici IP di origine  </li>
+<li>Autenticazione <strong>solo con chiave</strong>, niente password.</li>
+</ul>
+</li>
+<li><p><strong>Accessi dalla rete interna:</strong>  </p>
+<ul>
+<li>Consentiti per tutti gli utenti di sistema (ad esempio <code>mio_utente</code> o altri)  </li>
+<li>Autenticazione con password abilitata e chiavi ammessa  </li>
+<li>Nessuna restrizione di IP (ma ci si basa sul fatto che l’indirizzo IP provenga dalla rete interna, ad esempio <code>192.168.0.0/24</code>).</li>
+</ul>
+</li>
+</ol>
+<h3 id="Configurazione-di-base-di-etc-ssh-sshd-config"><a href="#Configurazione-di-base-di-etc-ssh-sshd-config" class="headerlink" title="Configurazione di base di /etc/ssh/sshd_config"></a>Configurazione di base di <code>/etc/ssh/sshd_config</code></h3><p>Nel file principale <code>/etc/ssh/sshd_config</code> lasceremo impostazioni generali di sicurezza:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> /etc/ssh/sshd_config /etc/ssh/sshd_config.bak</span><br></pre></td></tr></table></figure>
+
+<p>Modifichiamo <code>/etc/ssh/sshd_config</code> per disabilitare l’accesso root e alcune opzioni generali:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">UsePAM yes</span><br><span class="line">PermitRootLogin no</span><br><span class="line">ChallengeResponseAuthentication no</span><br><span class="line">PasswordAuthentication yes  # Abilitiamo qui la password come default, poi la limitiamo nei match esterni</span><br><span class="line">PubkeyAuthentication yes</span><br><span class="line"># Includiamo la directory di configurazione aggiuntiva</span><br><span class="line">Include /etc/ssh/sshd_config.d/*.conf</span><br></pre></td></tr></table></figure>
+
+<p>Salviamo e chiudiamo. Con <code>Include /etc/ssh/sshd_config.d/*.conf</code> abbiamo dato istruzioni a <code>sshd</code> di leggere file aggiuntivi nella directory <code>sshd_config.d</code>.</p>
+<h3 id="Creazione-dei-file-di-configurazione-modulari"><a href="#Creazione-dei-file-di-configurazione-modulari" class="headerlink" title="Creazione dei file di configurazione modulari"></a>Creazione dei file di configurazione modulari</h3><p>Creeremo due file all’interno di <code>/etc/ssh/sshd_config.d</code>:</p>
+<ul>
+<li><code>00-internal.conf</code> per la rete interna</li>
+<li><code>01-external.conf</code> per l’accesso esterno</li>
+</ul>
+<h4 id="Configurazione-interna-etc-ssh-sshd-config-d-00-internal-conf"><a href="#Configurazione-interna-etc-ssh-sshd-config-d-00-internal-conf" class="headerlink" title="Configurazione interna: /etc/ssh/sshd_config.d/00-internal.conf"></a>Configurazione interna: <code>/etc/ssh/sshd_config.d/00-internal.conf</code></h4><p>Questa configurazione consente a chiunque si trovi all’interno della rete interna (es. <code>192.168.0.0/24</code>) di autenticarsi con password:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/ssh/sshd_config.d/00-internal.conf</span><br></pre></td></tr></table></figure>
+
+<p>Inseriamo:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Match address 192.168.0.0/24</span><br><span class="line">    PasswordAuthentication yes</span><br><span class="line">    PubkeyAuthentication yes</span><br><span class="line">    # In questo scenario lasciamo qualsiasi utente della LAN entrare con password o chiave.</span><br></pre></td></tr></table></figure>
+
+<p>Salviamo e chiudiamo.</p>
+<h4 id="Configurazione-esterna-etc-ssh-sshd-config-d-01-external-conf"><a href="#Configurazione-esterna-etc-ssh-sshd-config-d-01-external-conf" class="headerlink" title="Configurazione esterna: /etc/ssh/sshd_config.d/01-external.conf"></a>Configurazione esterna: <code>/etc/ssh/sshd_config.d/01-external.conf</code></h4><p>Per l’accesso esterno, supponiamo di avere un IP pubblico o di filtrare l’accesso tramite firewall. Ad esempio, immaginiamo che solo da un certo IP pubblico o da un range (ad esempio <code>aa.bb.cc.dd</code>) possa accedere l’utente <code>deploy</code>. Inoltre, vogliamo obbligare l’autenticazione solo tramite chiave.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/ssh/sshd_config.d/01-external.conf</span><br></pre></td></tr></table></figure>
+
+<p>Inseriamo:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Match User deploy, Address aa.bb.cc.dd</span><br><span class="line">    PasswordAuthentication no</span><br><span class="line">    PubkeyAuthentication yes</span><br></pre></td></tr></table></figure>
+
+<p>In questo modo, se la connessione proviene dall’indirizzo <code>aa.bb.cc.dd</code> e l’utente che tenta di accedere è <code>deploy</code>, la password non sarà accettata, ma solo la chiave pubblica. Nessun altro IP o utente potrà usufruire di queste impostazioni.</p>
+<h3 id="Riavviare-il-servizio-SSH-per-applicare-le-modifiche"><a href="#Riavviare-il-servizio-SSH-per-applicare-le-modifiche" class="headerlink" title="Riavviare il servizio SSH per applicare le modifiche"></a>Riavviare il servizio SSH per applicare le modifiche</h3><p>Dopo aver creato i file di configurazione, riavviamo SSH:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart ssh</span><br></pre></td></tr></table></figure>
+
+<h2 id="Chiavi-SSH"><a href="#Chiavi-SSH" class="headerlink" title="Chiavi SSH"></a>Chiavi SSH</h2><p>L’utente <code>deploy</code> che accede da remoto dovrà avere una coppia di chiavi. Sul client remoto, generiamo una chiave:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -C <span class="string">&quot;deploy@example.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Copiare la chiave pubblica sul server (da remoto):</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id deploy@ip_o_dominio_del_server</span><br></pre></td></tr></table></figure>
+
+<p>Il comando <code>ssh-copy-id</code> aggiungerà la chiave a <code>~/.ssh/authorized_keys</code> dell’utente <code>deploy</code>.</p>
+<h2 id="Configurazione-del-firewall-per-differenti-casistiche"><a href="#Configurazione-del-firewall-per-differenti-casistiche" class="headerlink" title="Configurazione del firewall per differenti casistiche"></a>Configurazione del firewall per differenti casistiche</h2><p>Poiché da esterno si deve accedere solo con chiave e da determinati IP, si puo’ò rafforzare il tutto tramite <code>ufw</code>, consentendo solo l’IP esterno specifico:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ufw allow from aa.bb.cc.dd to any port 22</span><br></pre></td></tr></table></figure>
+
+<p>Se desiderate bloccare tutti gli altri tentativi di accesso esterni, assicuratevi di non eseguire un <code>ufw allow 22/tcp</code> generico, ma solo quello limitato all’IP sopra indicato. In caso foste costretti ad aprire a tutti l’accesso per qualche motivo, ricordate che fail2ban entra in azione per mitigare i tentativi di brute force.</p>
+<h2 id="Fail2ban-e-le-due-casistiche-di-accesso"><a href="#Fail2ban-e-le-due-casistiche-di-accesso" class="headerlink" title="Fail2ban e le due casistiche di accesso"></a>Fail2ban e le due casistiche di accesso</h2><p>Fail2ban non fa distinzioni tra accessi interni o esterni di default, ma grazie alla sua configurazione blocca gli IP che tentano numerosi accessi non autorizzati. Questo è utile specialmente per gli attacchi provenienti da Internet. Se notate che IP interni vengono bloccati, potete modificare la configurazione <code>ignoreip</code> in <code>/etc/fail2ban/jail.local</code>:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[sshd]</span><br><span class="line">enabled = true</span><br><span class="line">port = 22</span><br><span class="line">filter = sshd</span><br><span class="line">logpath = /var/log/auth.log</span><br><span class="line">maxretry = 5</span><br><span class="line">findtime = 600</span><br><span class="line">bantime = 3600</span><br><span class="line">ignoreip = 127.0.0.1/8 192.168.0.0/24</span><br></pre></td></tr></table></figure>
+
+<p>In questo modo gli IP interni non saranno bloccati, permettendo maggiore flessibilità nella LAN.</p>
+<p>Dopo le modifiche:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart fail2ban</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spostare-la-porta-SSH-esterna-su-una-porta-alta-con-port-forwarding"><a href="#Spostare-la-porta-SSH-esterna-su-una-porta-alta-con-port-forwarding" class="headerlink" title="Spostare la porta SSH esterna su una porta alta con port forwarding"></a>Spostare la porta SSH esterna su una porta alta con port forwarding</h2><p>È una buona pratica non esporre la porta 22 direttamente su Internet. Si può configurare il router per effettuare un port forwarding da una porta alta (ad esempio 22222) verso la porta 22 del server.</p>
+<h3 id="Passi-generali"><a href="#Passi-generali" class="headerlink" title="Passi generali"></a>Passi generali</h3><ol>
+<li><p><strong>Sul router&#x2F;NAT:</strong><br>Accedete all’interfaccia di gestione del vostro router e individuate la sezione “Port Forwarding” o “Virtual Server”.<br>Create una regola che inoltri la porta esterna 22222 (TCP) all’indirizzo IP interno del vostro server sulla porta 22.</p>
+</li>
+<li><p><strong>Configurazione del firewall interno per la nuova porta:</strong></p>
+<p>Poiché la porta 22 rimane aperta internamente, nella rete LAN tutto rimane come prima. Dall’esterno, però, l’utente si collegherà a <code>ssh -p 22222 deploy@mio_dominio</code> (se avete un nome di dominio puntato sul vostro IP pubblico).</p>
+<p>Se volete che il firewall accetti esplicitamente connessioni solo su 22 in LAN e non dall’esterno, potete chiudere la 22 dall’esterno e lasciare aperta solo tramite la regola del router:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ufw deny 22/tcp</span><br></pre></td></tr></table></figure>
+
+<p>Ma questo bloccherebbe completamente SSH via 22 (anche internamente), quindi meglio gestire il firewall sul router o, se il server deve essere raggiungibile da LAN su 22, lasciare <code>ufw allow 22/tcp</code> ma consentire accesso esterno solo tramite l’IP specifico. Dipende dalla vostra topologia di rete.<br>Se volete segmentare, potete usare regole UFW avanzate per differenziare l’accesso esterno&#x2F;interno (ad esempio definendo <code>allow from 192.168.0.0/24 to any port 22</code> per la LAN, e negare tutto il resto).</p>
+</li>
+</ol>
+<h3 id="Collegamento-esterno-sulla-porta-alta"><a href="#Collegamento-esterno-sulla-porta-alta" class="headerlink" title="Collegamento esterno sulla porta alta"></a>Collegamento esterno sulla porta alta</h3><p>Da un host remoto:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -p 22222 deploy@mio_dominio</span><br></pre></td></tr></table></figure>
+
+<p>La connessione arriverà al vostro router, che la inoltrerà alla porta 22 del server, passando le regole di <code>sshd</code>. Ricordate che l’utente <code>deploy</code> ha l’accesso da quell’IP autorizzato e soltanto con chiave.</p>
+<h2 id="Considerazioni-finali-e-spunti-per-l’automazione"><a href="#Considerazioni-finali-e-spunti-per-l’automazione" class="headerlink" title="Considerazioni finali e spunti per l’automazione"></a>Considerazioni finali e spunti per l’automazione</h2><p>Abbiamo creato una configurazione modulare che differenzia gli accessi SSH sulla base della rete di provenienza, del metodo di autenticazione e dell’utente, utilizzando i file in <code>sshd_config.d</code>. Abbiamo integrato firewall, fail2ban e illustrato come effettuare un port forwarding per aumentare la sicurezza.</p>
+<p>Questo approccio è solido, ma la sua gestione manuale può diventare complessa in ambienti di grandi dimensioni o con frequenti variazioni. Nel prossimo articolo potremmo esplorare meccanismi di <strong>automazione</strong>, utilizzando tool come Ansible, Puppet o Chef, per distribuire e mantenere queste configurazioni in maniera scalabile e ripetibile. L’automazione permetterebbe di applicare, testare e aggiornare queste configurazioni su un parco macchine esteso, riducendo il rischio di errori umani e semplificando il lavoro dell’amministratore di sistema.</p>
+<p>Con questi spunti, si chiude questo lungo articolo, augurandoci che le informazioni fornite siano utili per implementare un accesso SSH sicuro, flessibile e ben organizzato.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/" data-id="cm4gyhikb000072j9exzd0cy5" data-title="Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/networking/" rel="tag">networking</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sicurezza/" rel="tag">sicurezza</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ssh/" rel="tag">ssh</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/12/05/Configurare-SSH-su-Ubuntu-Soluzioni-a-Errori-Comuni/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Configurare SSH su Ubuntu: Soluzioni a Errori Comuni</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/networking/" rel="tag">networking</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/practice/" rel="tag">practice</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sicurezza/" rel="tag">sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ssh/" rel="tag">ssh</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Configurazione/" style="font-size: 20px;">Configurazione</a> <a href="/tags/SSH/" style="font-size: 20px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 20px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 20px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 20px;">Ubuntu 22.04</a> <a href="/tags/automazione/" style="font-size: 10px;">automazione</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/networking/" style="font-size: 10px;">networking</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 10px;">sicurezza</a> <a href="/tags/ssh/" style="font-size: 10px;">ssh</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/">Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/05/Configurare-SSH-su-Ubuntu-Soluzioni-a-Errori-Comuni/">Configurare SSH su Ubuntu: Soluzioni a Errori Comuni</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/">Configurazione di un server ssh su su ubuntu-220.04</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/">L&#39;importanza della condivisione: un viaggio da sistemista</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/31/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 geegeek<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
