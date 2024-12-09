@@ -461,43 +461,123 @@
 </li>
 </ol>
 <h2 id="Comandi-utili-ed-esempi-di-configurazione"><a href="#Comandi-utili-ed-esempi-di-configurazione" class="headerlink" title="Comandi utili ed esempi di configurazione"></a>Comandi utili ed esempi di configurazione</h2><p>Di seguito riportiamo alcuni esempi pratici, usando il comando <code>ip</code>.<br><strong>Nota:</strong> Evita di operare come root; utilizza invece <code>sudo</code> quando necessario. Prima di modificare configurazioni critiche di rete, sperimenta su macchine di test o sistemi non di produzione.</p>
-<h3 id="1-Individuare-le-interfacce-disponibili"><a href="#1-Individuare-le-interfacce-disponibili" class="headerlink" title="1. Individuare le interfacce disponibili"></a>1. Individuare le interfacce disponibili</h3><p>´´´bash<br>ip link show</p>
-<h3 id="2-Consultare-lo-stato-di-una-singola-interfaccia"><a href="#2-Consultare-lo-stato-di-una-singola-interfaccia" class="headerlink" title="2. Consultare lo stato di una singola interfaccia"></a>2. Consultare lo stato di una singola interfaccia</h3><p>´´´bash<br>ip link show dev eth0</p>
-<p>Questo comando mostra lo stato di <code>eth0</code>, le sue proprietà e se è up o down.</p>
-<h3 id="3-Configurare-l’interfaccia-di-loopback"><a href="#3-Configurare-l’interfaccia-di-loopback" class="headerlink" title="3. Configurare l’interfaccia di loopback"></a>3. Configurare l’interfaccia di loopback</h3><p>L’interfaccia loopback <code>lo</code> è solitamente già configurata di default, ma per verificarne lo stato:</p>
-<p>´´´bash<br>ip link set lo up<br>ip addr show dev lo</p>
-<h3 id="4-Attivare-o-disattivare-un’interfaccia"><a href="#4-Attivare-o-disattivare-un’interfaccia" class="headerlink" title="4. Attivare o disattivare un’interfaccia"></a>4. Attivare o disattivare un’interfaccia</h3><p>´´´bash<br>sudo ip link set eth0 up<br>sudo ip link set eth0 down</p>
-<h3 id="5-Modificare-parametri-avanzati-dell’interfaccia"><a href="#5-Modificare-parametri-avanzati-dell’interfaccia" class="headerlink" title="5. Modificare parametri avanzati dell’interfaccia"></a>5. Modificare parametri avanzati dell’interfaccia</h3><p>Ad esempio, per modificare l’MTU:</p>
-<p>´´´bash<br>sudo ip link set eth0 mtu 1400</p>
-<h3 id="6-Assegnare-un-indirizzo-IP"><a href="#6-Assegnare-un-indirizzo-IP" class="headerlink" title="6. Assegnare un indirizzo IP"></a>6. Assegnare un indirizzo IP</h3><p>´´´bash<br>sudo ip addr add 192.168.1.10&#x2F;24 dev eth0</p>
-<p>Per rimuoverlo:</p>
-<p>´´´bash<br>sudo ip addr del 192.168.1.10&#x2F;24 dev eth0</p>
-<h3 id="7-Visualizzare-gli-indirizzi-IP-configurati"><a href="#7-Visualizzare-gli-indirizzi-IP-configurati" class="headerlink" title="7. Visualizzare gli indirizzi IP configurati"></a>7. Visualizzare gli indirizzi IP configurati</h3><p>´´´bash<br>ip addr show</p>
-<h3 id="8-Configurare-una-route-di-default"><a href="#8-Configurare-una-route-di-default" class="headerlink" title="8. Configurare una route di default"></a>8. Configurare una route di default</h3><p>´´´bash<br>sudo ip route add default via 192.168.1.1 dev eth0</p>
-<h3 id="9-Eliminare-una-route"><a href="#9-Eliminare-una-route" class="headerlink" title="9. Eliminare una route"></a>9. Eliminare una route</h3><p>´´´bash<br>sudo ip route del 192.168.2.0&#x2F;24 dev eth0</p>
-<h3 id="10-Verificare-il-percorso-verso-un-host-remoto"><a href="#10-Verificare-il-percorso-verso-un-host-remoto" class="headerlink" title="10. Verificare il percorso verso un host remoto"></a>10. Verificare il percorso verso un host remoto</h3><p>Questo non è un comando <code>ip</code> diretto, ma <code>ip route get</code> può fornire una traccia del percorso:</p>
-<p>´´´bash<br>ip route get 8.8.8.8</p>
-<h3 id="11-Configurare-un-tunnel-IP-esempio-GRE"><a href="#11-Configurare-un-tunnel-IP-esempio-GRE" class="headerlink" title="11. Configurare un tunnel IP (esempio GRE)"></a>11. Configurare un tunnel IP (esempio GRE)</h3><p>´´´bash<br>sudo ip tunnel add gre1 mode gre remote 203.0.113.5 local 198.51.100.10 dev eth0<br>sudo ip link set gre1 up<br>sudo ip addr add 10.0.0.1&#x2F;24 dev gre1</p>
-<h3 id="12-Stato-globale-della-rete"><a href="#12-Stato-globale-della-rete" class="headerlink" title="12. Stato globale della rete"></a>12. Stato globale della rete</h3><p>´´´bash<br>ip -s link</p>
-<p>Mostra statistiche di rete su tutte le interfacce.</p>
-<h3 id="13-Informazioni-sugli-indirizzi-multicast"><a href="#13-Informazioni-sugli-indirizzi-multicast" class="headerlink" title="13. Informazioni sugli indirizzi multicast"></a>13. Informazioni sugli indirizzi multicast</h3><p>´´´bash<br>ip maddr show</p>
-<h3 id="14-Mostrare-la-cache-ARP"><a href="#14-Mostrare-la-cache-ARP" class="headerlink" title="14. Mostrare la cache ARP"></a>14. Mostrare la cache ARP</h3><p>´´´bash<br>ip neigh show</p>
-<h3 id="15-Gestire-la-ARP-cache"><a href="#15-Gestire-la-ARP-cache" class="headerlink" title="15. Gestire la ARP cache"></a>15. Gestire la ARP cache</h3><p>Aggiungere una voce statica ARP:</p>
-<p>´´´bash<br>sudo ip neigh add 192.168.1.50 lladdr 00:11:22:33:44:55 dev eth0 nud permanent</p>
-<p>Rimuoverla:</p>
-<p>´´´bash<br>sudo ip neigh del 192.168.1.50 dev eth0</p>
-<h2 id="Configurazione-di-base-consigliata"><a href="#Configurazione-di-base-consigliata" class="headerlink" title="Configurazione di base consigliata"></a>Configurazione di base consigliata</h2><p>Una configurazione di rete di base consigliata potrebbe prevedere:</p>
-<ul>
-<li>Un’interfaccia Ethernet principale con IP statico e una route di default verso il gateway della LAN.</li>
-<li>Un indirizzo IP assegnato con il comando <code>ip addr add ...</code>.</li>
-<li>Una route di default impostata con <code>ip route add default via ...</code>.</li>
-<li>Niente accessi diretti come root: utilizzare sempre <code>sudo</code>.</li>
-<li>Mantenere l’MTU standard (1500) a meno di necessità specifiche.</li>
-<li>Verificare che la cache ARP non contenga entry obsolete e mantenere aggiornato l’elenco delle rotte.</li>
-</ul>
-<p>Per rendere persistenti queste configurazioni, l’amministratore può utilizzare file di configurazione specifici della distribuzione (ad esempio <code>/etc/network/interfaces</code> su Debian&#x2F;Ubuntu, o i file in <code>/etc/sysconfig/network-scripts/</code> su Red Hat&#x2F;CentOS), riportando le stesse informazioni che abbiamo testato con <code>ip</code>.</p>
-<h2 id="Conclusioni"><a href="#Conclusioni" class="headerlink" title="Conclusioni"></a>Conclusioni</h2><p>Il comando <strong>ip</strong> mette a disposizione un set completo di strumenti per configurare, diagnosticare e mantenere in efficienza la rete di un host Linux. Prendere confidenza con le sue opzioni più importanti è un passo fondamentale per qualsiasi amministratore di sistema moderno. Aumentare la sicurezza e la stabilità della rete non richiede l’uso di pratiche rischiose, ma una buona comprensione degli strumenti a disposizione.</p>
-<p>Con l’approccio presentato in questo articolo, è possibile migliorare la propria padronanza di <code>ip</code>, organizzare il lavoro in modo sistematico e mantenere un livello di sicurezza medio-alto anche nella gestione quotidiana del networking Linux.</p>
+<h3 id="1-Individuare-le-interfacce-disponibili"><a href="#1-Individuare-le-interfacce-disponibili" class="headerlink" title="1. Individuare le interfacce disponibili"></a>1. Individuare le interfacce disponibili</h3><pre><code class="bash">ip link show
+
+### 2. Consultare lo stato di una singola interfaccia
+
+```bash
+ip link show dev eth0
+
+Questo comando mostra lo stato di `eth0`, le sue proprietà e se è up o down.
+
+### 3. Configurare l’interfaccia di loopback
+
+L’interfaccia loopback `lo` è solitamente già configurata di default, ma per verificarne lo stato:
+
+```bash
+ip link set lo up
+ip addr show dev lo
+
+### 4. Attivare o disattivare un’interfaccia
+
+```bash
+sudo ip link set eth0 up
+sudo ip link set eth0 down
+
+### 5. Modificare parametri avanzati dell’interfaccia
+
+Ad esempio, per modificare l’MTU:
+
+```bash
+sudo ip link set eth0 mtu 1400
+
+### 6. Assegnare un indirizzo IP
+
+```bash
+sudo ip addr add 192.168.1.10/24 dev eth0
+
+Per rimuoverlo:
+
+```bash
+sudo ip addr del 192.168.1.10/24 dev eth0
+
+### 7. Visualizzare gli indirizzi IP configurati
+
+```bash
+ip addr show
+
+### 8. Configurare una route di default
+
+```bash
+sudo ip route add default via 192.168.1.1 dev eth0
+
+### 9. Eliminare una route
+
+```bash
+sudo ip route del 192.168.2.0/24 dev eth0
+
+### 10. Verificare il percorso verso un host remoto
+
+Questo non è un comando `ip` diretto, ma `ip route get` può fornire una traccia del percorso:
+
+```bash
+ip route get 8.8.8.8
+
+### 11. Configurare un tunnel IP (esempio GRE)
+
+```bash
+sudo ip tunnel add gre1 mode gre remote 203.0.113.5 local 198.51.100.10 dev eth0
+sudo ip link set gre1 up
+sudo ip addr add 10.0.0.1/24 dev gre1
+
+### 12. Stato globale della rete
+
+```bash
+ip -s link
+
+Mostra statistiche di rete su tutte le interfacce.
+
+### 13. Informazioni sugli indirizzi multicast
+
+```bash
+ip maddr show
+
+### 14. Mostrare la cache ARP
+
+```bash
+ip neigh show
+
+### 15. Gestire la ARP cache
+
+Aggiungere una voce statica ARP:
+
+```bash
+sudo ip neigh add 192.168.1.50 lladdr 00:11:22:33:44:55 dev eth0 nud permanent
+
+Rimuoverla:
+
+```bash
+sudo ip neigh del 192.168.1.50 dev eth0
+
+## Configurazione di base consigliata
+
+Una configurazione di rete di base consigliata potrebbe prevedere:
+
+- Un’interfaccia Ethernet principale con IP statico e una route di default verso il gateway della LAN.
+- Un indirizzo IP assegnato con il comando `ip addr add ...`.
+- Una route di default impostata con `ip route add default via ...`.
+- Niente accessi diretti come root: utilizzare sempre `sudo`.
+- Mantenere l’MTU standard (1500) a meno di necessità specifiche.
+- Verificare che la cache ARP non contenga entry obsolete e mantenere aggiornato l’elenco delle rotte.
+
+Per rendere persistenti queste configurazioni, l’amministratore può utilizzare file di configurazione specifici della distribuzione (ad esempio `/etc/network/interfaces` su Debian/Ubuntu, o i file in `/etc/sysconfig/network-scripts/` su Red Hat/CentOS), riportando le stesse informazioni che abbiamo testato con `ip`.
+
+## Conclusioni
+
+Il comando **ip** mette a disposizione un set completo di strumenti per configurare, diagnosticare e mantenere in efficienza la rete di un host Linux. Prendere confidenza con le sue opzioni più importanti è un passo fondamentale per qualsiasi amministratore di sistema moderno. Aumentare la sicurezza e la stabilità della rete non richiede l’uso di pratiche rischiose, ma una buona comprensione degli strumenti a disposizione.
+
+Con l’approccio presentato in questo articolo, è possibile migliorare la propria padronanza di `ip`, organizzare il lavoro in modo sistematico e mantenere un livello di sicurezza medio-alto anche nella gestione quotidiana del networking Linux.
+</code></pre>
 
       
     </div>
