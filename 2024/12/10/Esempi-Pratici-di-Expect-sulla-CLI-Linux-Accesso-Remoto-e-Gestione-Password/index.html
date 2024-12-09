@@ -6,15 +6,15 @@
   
   <title>Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password | Geegeek&#39;xo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione PasswordIntroduzioneIn ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi ch">
+  <meta name="description" content="IntroduzioneIn ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi che richiedono input da tastiera sono attività frequenti. L’utilizzo di Expect">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password">
 <meta property="og:url" content="https://geegeek.github.io/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/index.html">
 <meta property="og:site_name" content="Geegeek&#39;xo">
-<meta property="og:description" content="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione PasswordIntroduzioneIn ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi ch">
+<meta property="og:description" content="IntroduzioneIn ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi che richiedono input da tastiera sono attività frequenti. L’utilizzo di Expect">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2024-12-10T00:00:00.000Z">
-<meta property="article:modified_time" content="2024-12-09T13:25:21.943Z">
+<meta property="article:modified_time" content="2024-12-09T13:27:32.859Z">
 <meta property="article:author" content="geegeek">
 <meta property="article:tag" content="linux">
 <meta property="article:tag" content="networking">
@@ -96,7 +96,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password"><a href="#Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password" class="headerlink" title="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password"></a>Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</h1><h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi che richiedono input da tastiera sono attività frequenti. L’utilizzo di <strong>Expect</strong> offre una soluzione semplice e versatile: questo strumento consente di definire in anticipo le risposte a richieste interattive, evitando la necessità di sviluppare interi script in linguaggi più complessi come Python o PHP.</p>
+        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi che richiedono input da tastiera sono attività frequenti. L’utilizzo di <strong>Expect</strong> offre una soluzione semplice e versatile: questo strumento consente di definire in anticipo le risposte a richieste interattive, evitando la necessità di sviluppare interi script in linguaggi più complessi come Python o PHP.</p>
 <p>Garantire un buon livello di sicurezza nell’automazione è fondamentale. Gli esempi forniti di seguito mantengono un approccio prudente: utilizzeremo account non privilegiati o con le autorizzazioni minime necessarie, eviteremo l’uso diretto dell’utente root e ci assicureremo di non memorizzare password in chiaro su file non protetti. L’obiettivo è automatizzare task comuni in modo sicuro e affidabile.</p>
 <h2 id="Cosa-e-Expect"><a href="#Cosa-e-Expect" class="headerlink" title="Cosa è Expect?"></a>Cosa è Expect?</h2><p>Expect è un programma che permette di “dialogare” con altri programmi interattivi secondo uno script. In altre parole, con Expect si può:</p>
 <ul>
