@@ -69,6 +69,128 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/" class="article-date">
+  <time class="dt-published" datetime="2024-12-10T00:00:00.000Z" itemprop="datePublished">2024-12-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/">Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password"><a href="#Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password" class="headerlink" title="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password"></a>Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</h1><h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In ambiente Linux&#x2F;Unix, l’automazione di compiti ripetitivi e l’interazione non presidiata con programmi che richiedono input da tastiera sono attività frequenti. L’utilizzo di <strong>Expect</strong> offre una soluzione semplice e versatile: questo strumento consente di definire in anticipo le risposte a richieste interattive, evitando la necessità di sviluppare interi script in linguaggi più complessi come Python o PHP.</p>
+<p>Garantire un buon livello di sicurezza nell’automazione è fondamentale. Gli esempi forniti di seguito mantengono un approccio prudente: utilizzeremo account non privilegiati o con le autorizzazioni minime necessarie, eviteremo l’uso diretto dell’utente root e ci assicureremo di non memorizzare password in chiaro su file non protetti. L’obiettivo è automatizzare task comuni in modo sicuro e affidabile.</p>
+<h2 id="Cosa-e-Expect"><a href="#Cosa-e-Expect" class="headerlink" title="Cosa è Expect?"></a>Cosa è Expect?</h2><p>Expect è un programma che permette di “dialogare” con altri programmi interattivi secondo uno script. In altre parole, con Expect si può:</p>
+<ul>
+<li>Avviare un programma interattivo (come <code>ssh</code> o <code>passwd</code>)</li>
+<li>Attendere determinate risposte, prompt o messaggi</li>
+<li>Inviare input predefiniti in risposta a tali messaggi</li>
+</ul>
+<p>Il linguaggio di scripting di Expect si basa su Tcl, un linguaggio interpretato, semplice ma potente, che fornisce strutture di controllo (if, for), definizione di procedure, manipolazione di stringhe e molto altro. Questa combinazione consente di creare script di automazione flessibili, capaci di gestire condizioni variabili e flussi logici complessi.</p>
+<h2 id="Quando-e-Perche-Usare-Expect"><a href="#Quando-e-Perche-Usare-Expect" class="headerlink" title="Quando e Perché Usare Expect?"></a>Quando e Perché Usare Expect?</h2><p>Expect è utile in qualsiasi scenario in cui si necessiti di fornire risposte previste a input richiesti da un programma. Ad esempio:</p>
+<ul>
+<li>Accesso remoto a sistemi via SSH senza dover inserire la password manualmente, utile quando si devono eseguire comandi su più server.</li>
+<li>Gestione automatizzata delle password, ad esempio per aggiornare le credenziali di un account locale su più macchine.</li>
+<li>Automazione di procedure interne a sistemi legacy o applicazioni non modernizzate.</li>
+</ul>
+<p>Rispetto ad altre soluzioni come l’uso di librerie Python o di Ansible, Expect può risultare più semplice e immediato, specialmente per piccole automazioni quotidiane o integrazioni rapide all’interno di script Bash esistenti.</p>
+<h2 id="Installazione-e-Uso-di-Base"><a href="#Installazione-e-Uso-di-Base" class="headerlink" title="Installazione e Uso di Base"></a>Installazione e Uso di Base</h2><p>Prima di tutto, verificare che Expect sia installato:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> expect</span><br><span class="line">```  </span><br><span class="line">Se non installato, utilizzare il gestore pacchetti della distribuzione per aggiungerlo. Ad esempio su Debian/Ubuntu:</span><br><span class="line">```bash</span><br><span class="line"><span class="built_in">sudo</span> apt-get update &amp;&amp; <span class="built_in">sudo</span> apt-get install expect</span><br></pre></td></tr></table></figure>
+
+<p>Per eseguire uno script Expect:</p>
+<ul>
+<li>Creare il file con estensione <code>.exp</code></li>
+<li>Assicurarsi che abbia i permessi di esecuzione</li>
+<li>Lanciare lo script con:<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">expect -f nome_script.exp</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>È anche possibile rendere lo script eseguibile e utilizzare il <strong>shebang</strong>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/expect -f</span></span><br></pre></td></tr></table></figure>
+<p>In questo modo si potrà lanciare lo script direttamente, come un normale comando.</p>
+<p>Per maggiori dettagli sulle opzioni, consultare la pagina man di Expect:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">man expect</span><br></pre></td></tr></table></figure>
+
+<h2 id="Esempio-1-Connessione-SSH-e-Comando-Remoto"><a href="#Esempio-1-Connessione-SSH-e-Comando-Remoto" class="headerlink" title="Esempio 1: Connessione SSH e Comando Remoto"></a>Esempio 1: Connessione SSH e Comando Remoto</h2><p>Un caso tipico è l’accesso a un server remoto via SSH per eseguire un comando specifico. Immaginiamo di dover connetterci a un server senza inserire manualmente la password e lanciare un singolo comando remoto.</p>
+<p><strong>Prerequisiti di sicurezza:</strong></p>
+<ul>
+<li>Assicurarsi di utilizzare chiavi SSH protette da passphrase se possibile, oppure conservare la password in modo sicuro (ad esempio in un file con permessi limitati).</li>
+<li>Non utilizzare l’utente root, ma un account non privilegiato.</li>
+</ul>
+<h3 id="Script-di-Esempio"><a href="#Script-di-Esempio" class="headerlink" title="Script di Esempio"></a>Script di Esempio</h3><p>Creare un file <code>ssh_command.exp</code> con il seguente contenuto:</p>
+<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/expect -f</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Verifica dei parametri: username, password, server, porta, comando</span></span><br><span class="line"><span class="keyword">if</span> &#123;[<span class="keyword">llength</span> <span class="variable">$argv</span>] != <span class="number">5</span>&#125; &#123;</span><br><span class="line">    <span class="keyword">puts</span> <span class="string">&quot;Uso: ./ssh_command.exp &lt;username&gt; &lt;password&gt; &lt;server&gt; &lt;porta&gt; &lt;comando&gt;&quot;</span></span><br><span class="line">    <span class="keyword">exit</span> <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> username [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">0</span>]</span><br><span class="line"><span class="keyword">set</span> password [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">1</span>]</span><br><span class="line"><span class="keyword">set</span> server [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">2</span>]</span><br><span class="line"><span class="keyword">set</span> port [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">3</span>]</span><br><span class="line"><span class="keyword">set</span> command [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">4</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> timeout <span class="number">60</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Avvio della sessione SSH</span></span><br><span class="line">spawn ssh -p <span class="variable">$port</span> <span class="variable">$username</span>@<span class="variable">$server</span> <span class="variable">$command</span></span><br><span class="line">expect <span class="string">&quot;?assword:&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Invio della password</span></span><br><span class="line">send <span class="string">&quot;$password\r&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Attendo la fine dell’esecuzione del comando</span></span><br><span class="line">expect <span class="keyword">eof</span></span><br></pre></td></tr></table></figure>
+
+<p>Rendere lo script eseguibile:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x ssh_command.exp</span><br></pre></td></tr></table></figure>
+
+<p>Eseguire lo script:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./ssh_command.exp utente password server.example.com 22 <span class="string">&quot;ls -l&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Lo script effettuerà la connessione, inserirà la password per voi ed eseguirà il comando <code>ls -l</code> sul server remoto.</p>
+<h2 id="Esempio-2-Cambio-Password-Utente-con-Expect"><a href="#Esempio-2-Cambio-Password-Utente-con-Expect" class="headerlink" title="Esempio 2: Cambio Password Utente con Expect"></a>Esempio 2: Cambio Password Utente con Expect</h2><p>Supponiamo di voler aggiornare la password di un account locale. L’uso di Expect consente di automatizzare questo processo senza inserire manualmente la password all’interno del prompt di <code>passwd</code>.</p>
+<p><strong>Nota di Sicurezza:</strong>  </p>
+<ul>
+<li>Non utilizzare l’utente root. Utilizzare un account con i permessi minimi sufficienti a modificare la password desiderata. In un contesto reale, valutare attentamente le autorizzazioni del proprio ambiente.</li>
+<li>Evitare di lasciare password in chiaro su file non sicuri. Eventualmente usare variabili d’ambiente protette, o gestori di segreti sicuri.</li>
+</ul>
+<h3 id="Script-di-Esempio-1"><a href="#Script-di-Esempio-1" class="headerlink" title="Script di Esempio"></a>Script di Esempio</h3><p>Creare il file <code>passwd_change.exp</code>:</p>
+<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/expect -f</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> &#123;[<span class="keyword">llength</span> <span class="variable">$argv</span>] != <span class="number">2</span>&#125; &#123;</span><br><span class="line">    <span class="keyword">puts</span> <span class="string">&quot;Uso: ./passwd_change.exp &lt;username&gt; &lt;nuova_password&gt;&quot;</span></span><br><span class="line">    <span class="keyword">exit</span> <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> username [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">0</span>]</span><br><span class="line"><span class="keyword">set</span> newpass [<span class="keyword">lindex</span> <span class="variable">$argv</span> <span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> timeout <span class="number">20</span></span><br><span class="line"></span><br><span class="line">spawn passwd <span class="variable">$username</span></span><br><span class="line">expect <span class="string">&quot;assword:&quot;</span></span><br><span class="line">send <span class="string">&quot;$newpass\r&quot;</span></span><br><span class="line">expect <span class="string">&quot;assword:&quot;</span></span><br><span class="line">send <span class="string">&quot;$newpass\r&quot;</span></span><br><span class="line">expect <span class="keyword">eof</span></span><br></pre></td></tr></table></figure>
+
+<p>Rendere lo script eseguibile:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x passwd_change.exp</span><br></pre></td></tr></table></figure>
+
+<p>Eseguire lo script per cambiare la password:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./passwd_change.exp utente locale_nuova_password</span><br></pre></td></tr></table></figure>
+
+<h2 id="Integrazione-con-Script-Bash"><a href="#Integrazione-con-Script-Bash" class="headerlink" title="Integrazione con Script Bash"></a>Integrazione con Script Bash</h2><p>Expect può essere facilmente integrato all’interno di script Bash più ampi. Ad esempio, potremmo avere uno script Bash che esegue aggiornamenti periodici su un server e successivamente richiama Expect per eseguire comandi remoti in modo automatizzato.</p>
+<p>Esempio di snippet Bash che chiama lo script di connessione SSH:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Aggiornamenti o altre operazioni di contesto qui...</span></span><br><span class="line"><span class="comment"># Variabili definite all’interno dello script Bash</span></span><br><span class="line">USERNAME=<span class="string">&quot;utente&quot;</span></span><br><span class="line">PASSWORD=<span class="string">&quot;mypass&quot;</span></span><br><span class="line">SERVER=<span class="string">&quot;server.example.com&quot;</span></span><br><span class="line">PORT=22</span><br><span class="line">COMMAND=<span class="string">&quot;uptime&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Richiama lo script Expect</span></span><br><span class="line">./ssh_command.exp <span class="string">&quot;<span class="variable">$USERNAME</span>&quot;</span> <span class="string">&quot;<span class="variable">$PASSWORD</span>&quot;</span> <span class="string">&quot;<span class="variable">$SERVER</span>&quot;</span> <span class="string">&quot;<span class="variable">$PORT</span>&quot;</span> <span class="string">&quot;<span class="variable">$COMMAND</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>In questo modo è possibile combinare logica Bash, controllo di flussi, cicli e condizioni con la capacità interattiva di Expect.</p>
+<h2 id="Considerazioni-Finali"><a href="#Considerazioni-Finali" class="headerlink" title="Considerazioni Finali"></a>Considerazioni Finali</h2><p>Gli esempi presentati mostrano come Expect possa semplificare l’automazione di operazioni comuni:</p>
+<ul>
+<li>Connettersi a un server remoto e dare comandi in autonomia.</li>
+<li>Aggiornare la password di un utente locale senza interazioni manuali.</li>
+</ul>
+<p>L’uso di Expect rimane flessibile: può essere applicato a numerosi altri scenari, dalla configurazione di dispositivi di rete all’interazione con applicazioni legacy. L’approccio basato su Tcl rende Expect potente e adattabile. È consigliabile esplorare la documentazione completa per scoprire funzionalità avanzate come la gestione dei timeout, l’uso di pattern più complessi e l’integrazione con altri strumenti.</p>
+<h2 id="Riferimenti-e-Risorse"><a href="#Riferimenti-e-Risorse" class="headerlink" title="Riferimenti e Risorse"></a>Riferimenti e Risorse</h2><ul>
+<li><p>Pagina man di Expect:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">man expect</span><br></pre></td></tr></table></figure></li>
+<li><p>Documentazione Tcl:<br><a target="_blank" rel="noopener" href="https://www.tcl.tk/">https://www.tcl.tk/</a></p>
+</li>
+<li><p>Esempi aggiuntivi e progetti open source su GitHub e altri repository di script per l’automazione, dove potete trovare soluzioni reali e suggerimenti pratici.</p>
+</li>
+</ul>
+<p>In definitiva, l’obiettivo è mantenere un equilibrio tra automazione e sicurezza, adottando pratiche prudenziali come l’uso di account non privilegiati, la protezione delle credenziali e la verifica costante degli script prima di metterli in produzione.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/" data-id="cm4h2f4qr0000f7j95p3fg8zr" data-title="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/networking/" rel="tag">networking</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/" class="article-date">
@@ -952,7 +1074,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Configurazione/" style="font-size: 15px;">Configurazione</a> <a href="/tags/SSH/" style="font-size: 15px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 15px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 15px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 15px;">Ubuntu 22.04</a> <a href="/tags/amministrazione-sistemi/" style="font-size: 10px;">amministrazione-sistemi</a> <a href="/tags/ansible/" style="font-size: 10px;">ansible</a> <a href="/tags/automazione/" style="font-size: 15px;">automazione</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/networking/" style="font-size: 20px;">networking</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 15px;">sicurezza</a> <a href="/tags/ssh/" style="font-size: 15px;">ssh</a>
+      <a href="/tags/Configurazione/" style="font-size: 13.33px;">Configurazione</a> <a href="/tags/SSH/" style="font-size: 13.33px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 13.33px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 13.33px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 13.33px;">Ubuntu 22.04</a> <a href="/tags/amministrazione-sistemi/" style="font-size: 10px;">amministrazione-sistemi</a> <a href="/tags/ansible/" style="font-size: 10px;">ansible</a> <a href="/tags/automazione/" style="font-size: 16.67px;">automazione</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/networking/" style="font-size: 20px;">networking</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 13.33px;">sicurezza</a> <a href="/tags/ssh/" style="font-size: 13.33px;">ssh</a>
     </div>
   </div>
 
@@ -974,6 +1096,10 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
       <ul>
         
           <li>
+            <a href="/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/">Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</a>
+          </li>
+        
+          <li>
             <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/">Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding</a>
           </li>
         
@@ -987,10 +1113,6 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
         
           <li>
             <a href="/2024/12/05/Configurare-SSH-su-Ubuntu-Soluzioni-a-Errori-Comuni/">Configurare SSH su Ubuntu: Soluzioni a Errori Comuni</a>
-          </li>
-        
-          <li>
-            <a href="/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/">Configurazione di un server ssh su su ubuntu-220.04</a>
           </li>
         
       </ul>
