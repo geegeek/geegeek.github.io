@@ -6,15 +6,15 @@
   
   <title>Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding | Geegeek&#39;xo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma">
+  <meta name="description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza un po’ piu’ elevato. Non ci limiteremo alla semplice attivazione del">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Implementare un server SSH su Ubuntu&#x2F;Debian, configurazioni differenziate e accesso esterno con port forwarding">
 <meta property="og:url" content="https://geegeek.github.io/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/index.html">
 <meta property="og:site_name" content="Geegeek&#39;xo">
-<meta property="og:description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma">
+<meta property="og:description" content="IntroduzioneIn questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza un po’ piu’ elevato. Non ci limiteremo alla semplice attivazione del">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2024-12-09T00:00:00.000Z">
-<meta property="article:modified_time" content="2024-12-09T11:35:11.510Z">
+<meta property="article:modified_time" content="2024-12-09T17:43:05.160Z">
 <meta property="article:author" content="geegeek">
 <meta property="article:tag" content="ssh">
 <meta property="article:tag" content="linux">
@@ -98,7 +98,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza elevato. Non ci limiteremo alla semplice attivazione del servizio, ma esploreremo una strategia di configurazione modulare utilizzando la directory <code>sshd_config.d</code>. Questo approccio consente di creare differenti casistiche di accesso in base alla rete di provenienza, al metodo di autenticazione e all’utente che tenta di collegarsi. Inoltre, vedremo come:</p>
+        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In questo articolo approfondiremo la configurazione di un server SSH su Ubuntu&#x2F;Debian con un livello di sicurezza un po’ piu’ elevato. Non ci limiteremo alla semplice attivazione del servizio, ma esploreremo una strategia di configurazione modulare utilizzando la directory <code>sshd_config.d</code>. Questo approccio consente di creare differenti casistiche di accesso in base alla rete di provenienza, al metodo di autenticazione e all’utente che tenta di collegarsi. Inoltre, vedremo come:</p>
 <ul>
 <li>Limitare gli accessi esterni a determinati utenti e chiavi pubbliche, filtrando per indirizzi IP di origine.</li>
 <li>Permettere, da rete interna, l’accesso anche con password per tutti gli utenti.</li>
@@ -115,7 +115,7 @@
 <li>Il server dispone di un IP interno (LAN) e di un IP pubblico (o di un router con port forwarding configurabile).</li>
 <li>L’utente di amministrazione appartiene al gruppo <code>sudo</code>.</li>
 </ul>
-<h2 id="Perche-adottare-una-configurazione-modulare-con-sshd-config-d"><a href="#Perche-adottare-una-configurazione-modulare-con-sshd-config-d" class="headerlink" title="Perché adottare una configurazione modulare con sshd_config.d"></a>Perché adottare una configurazione modulare con sshd_config.d</h2><p>Il file principale <code>/etc/ssh/sshd_config</code> definisce il comportamento globale del server SSH. Tuttavia, utilizzando la directory <code>/etc/ssh/sshd_config.d</code>, possiamo inserire file aggiuntivi che sovrascrivono o integrano la configurazione di base. Questo approccio modulare permette di mantenere il file principale pulito e di organizzare le diverse casistiche di accesso in file separati. È particolarmente utile quando si gestiscono scenari complessi e si ha necessità di apportare modifiche incrementali senza rischiare di compromettere l’intera configurazione.</p>
+<h2 id="Perche’�-adottare-una-configurazione-modulare-con-sshd-config-d"><a href="#Perche’�-adottare-una-configurazione-modulare-con-sshd-config-d" class="headerlink" title="Perche’� adottare una configurazione modulare con sshd_config.d"></a>Perche’� adottare una configurazione modulare con sshd_config.d</h2><p>Il file principale <code>/etc/ssh/sshd_config</code> definisce il comportamento globale del server SSH. Tuttavia, utilizzando la directory <code>/etc/ssh/sshd_config.d</code>, possiamo inserire file aggiuntivi che sovrascrivono o integrano la configurazione di base. Questo approccio modulare permette di mantenere il file principale pulito e di organizzare le diverse casistiche di accesso in file separati. È particolarmente utile quando si gestiscono scenari complessi e si ha necessità di apportare modifiche incrementali senza rischiare di compromettere l’intera configurazione.</p>
 <h2 id="Configurazione-di-base-di-OpenSSH"><a href="#Configurazione-di-base-di-OpenSSH" class="headerlink" title="Configurazione di base di OpenSSH"></a>Configurazione di base di OpenSSH</h2><h3 id="Installazione"><a href="#Installazione" class="headerlink" title="Installazione"></a>Installazione</h3><p>Se non lo avete già fatto, procedete all’installazione:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install openssh-server</span><br></pre></td></tr></table></figure>
 
@@ -222,8 +222,11 @@
 
 <p>La connessione arriverà al vostro router, che la inoltrerà alla porta 22 del server, passando le regole di <code>sshd</code>. Ricordate che l’utente <code>deploy</code> ha l’accesso da quell’IP autorizzato e soltanto con chiave.</p>
 <h2 id="Considerazioni-finali-e-spunti-per-l’automazione"><a href="#Considerazioni-finali-e-spunti-per-l’automazione" class="headerlink" title="Considerazioni finali e spunti per l’automazione"></a>Considerazioni finali e spunti per l’automazione</h2><p>Abbiamo creato una configurazione modulare che differenzia gli accessi SSH sulla base della rete di provenienza, del metodo di autenticazione e dell’utente, utilizzando i file in <code>sshd_config.d</code>. Abbiamo integrato firewall, fail2ban e illustrato come effettuare un port forwarding per aumentare la sicurezza.</p>
-<p>Questo approccio è solido, ma la sua gestione manuale può diventare complessa in ambienti di grandi dimensioni o con frequenti variazioni. Nel prossimo articolo potremmo esplorare meccanismi di <strong>automazione</strong>, utilizzando tool come Ansible, Puppet o Chef, per distribuire e mantenere queste configurazioni in maniera scalabile e ripetibile. L’automazione permetterebbe di applicare, testare e aggiornare queste configurazioni su un parco macchine esteso, riducendo il rischio di errori umani e semplificando il lavoro dell’amministratore di sistema.</p>
+<p>Questo approccio è solido, ma la sua gestione manuale puo’ò diventare complessa in ambienti di grandi dimensioni o con frequenti variazioni. Nel prossimo articolo potremmo esplorare meccanismi di <strong>automazione</strong>, utilizzando tool come Ansible, Puppet o Chef, per distribuire e mantenere queste configurazioni in maniera scalabile e ripetibile. L’automazione permetterebbe di applicare, testare e aggiornare queste configurazioni su un parco macchine esteso, riducendo il rischio di errori umani e semplificando il lavoro dell’amministratore di sistema.</p>
 <p>Con questi spunti, si chiude questo lungo articolo, augurandoci che le informazioni fornite siano utili per implementare un accesso SSH sicuro, flessibile e ben organizzato.</p>
+<p>##TO DO<br>Un ulteriore passo avanti verso una configurazione più robusta e scalabile potrebbe essere l’utilizzo di un reverse proxy posizionato davanti alla porta SSH esposta su Internet. In particolare, adottare un servizio come Cloudflare (gratuito nella fascia free per il traffico su porte HTTP&#x2F;HTTPS, ma non per la porta SSH) consentirebbe di usufruire della loro rete globale di distribuzione, di strumenti di mitigazione avanzati contro attacchi DDoS, e di ulteriori livelli di filtraggio del traffico.</p>
+<p>Tuttavia, questa configurazione introduce complessità aggiuntive: occorrerebbe consentire l’accesso solo agli indirizzi IP di Cloudflare, con una conseguente modifica delle regole firewall, una gestione più granulare delle liste di trusted IP e una combinazione di impostazioni su Cloudflare stesso.</p>
+<p>Questa soluzione, pur più articolata, incrementa significativamente la resilienza del sistema e riduce l’esposizione diretta della vostra infrastruttura, rendendola meno vulnerabile alle minacce provenienti da Internet. Consideratela un’evoluzione del setup descritto in quest’articolo, una strada da intraprendere quando le esigenze di sicurezza e affidabilità diventano più stringenti.</p>
 
       
     </div>
