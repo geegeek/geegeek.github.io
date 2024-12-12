@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando | Geegeek&#39;xo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Quando lo spazio su disco inizia a ridursi, diventa importante individuare quali directory o file consumano grandi quantità di spazio di archiviazione. Disporre dei giusti comandi da riga di comando è">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando">
+<meta property="og:url" content="https://geegeek.github.io/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/index.html">
+<meta property="og:site_name" content="Geegeek&#39;xo">
+<meta property="og:description" content="Quando lo spazio su disco inizia a ridursi, diventa importante individuare quali directory o file consumano grandi quantità di spazio di archiviazione. Disporre dei giusti comandi da riga di comando è">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-12-12T17:32:08.000Z">
+<meta property="article:modified_time" content="2024-12-12T17:33:18.984Z">
+<meta property="article:author" content="geegeek">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="spazio disco">
+<meta property="article:tag" content="manutenzione">
+<meta property="article:tag" content="Nagios">
+<meta property="article:tag" content="HomeLab">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Geegeek'xo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Geegeek&#39;xo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://geegeek.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/" class="article-date">
+  <time class="dt-published" datetime="2024-12-12T17:32:08.000Z" itemprop="datePublished">2024-12-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Amministrazione-di-Sistema/">Amministrazione di Sistema</a>►<a class="article-category-link" href="/categories/Amministrazione-di-Sistema/Linux/">Linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Quando lo spazio su disco inizia a ridursi, diventa importante individuare quali directory o file consumano grandi quantità di spazio di archiviazione. Disporre dei giusti comandi da riga di comando è essenziale per una manutenzione quotidiana del proprio HomeLab, permettendo di affrontare con calma ed efficienza situazioni potenzialmente critiche.</p>
+<p>In questo articolo vedremo alcuni comandi utili per analizzare lo spazio su disco su sistemi Linux. Verranno illustrate anche alcune strategie per liberare spazio, mantenendo un livello di sicurezza medio-alto e operando in modo ragionevole. Nessuna pratica eccessivamente rischiosa verrà proposta, e suggeriremo sempre di operare con la massima cautela.</p>
+<hr>
+<h3 id="Panoramica-sullo-spazio-su-disco"><a href="#Panoramica-sullo-spazio-su-disco" class="headerlink" title="Panoramica sullo spazio su disco"></a>Panoramica sullo spazio su disco</h3><p>Prima di tutto, è utile avere una panoramica generale dell’utilizzo delle partizioni:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -h</span><br></pre></td></tr></table></figure>
+
+<p>L’opzione <code>-h</code> (human-readable) converte i valori in unità facilmente leggibili (KB, MB, GB). Da questo output, potrai vedere subito se una partizione è vicina al limite della sua capacità.</p>
+<hr>
+<h3 id="Identificare-le-directory-piu-grandi"><a href="#Identificare-le-directory-piu-grandi" class="headerlink" title="Identificare le directory più grandi"></a>Identificare le directory più grandi</h3><p>Quando individui una partizione critica (ad esempio <code>/opt/NOME_DIRECTORY</code>), puoi analizzare la struttura delle directory al suo interno:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">du</span> -h /opt/NOME_DIRECTORY --max-depth=1 2&gt;/dev/null | <span class="built_in">sort</span> -hr | <span class="built_in">head</span> -n 10</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>du -h</code>: mostra la dimensione delle directory in modo leggibile  </li>
+<li><code>--max-depth=1</code>: limita la profondità dell’analisi a un solo livello  </li>
+<li><code>sort -hr</code>: ordina i risultati dal più grande al più piccolo  </li>
+<li><code>head -n 10</code>: mostra le prime 10 linee</li>
+<li>L’opzione <code>2&gt;/dev/null</code> viene utilizzata per ignorare i messaggi di errore relativi a directory non accessibili, semplificando l’analisi dell’output. In alcuni contesti potresti ometterla, se preferisci vedere quali percorsi non possono essere letti.</li>
+</ul>
+<p>Se individui una sottodirectory di grandi dimensioni, puoi approfondire ulteriormente nello stesso modo:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">du</span> -h /opt/NOME_DIRECTORY/GRANDE_CARTELLA_1 --max-depth=1 2&gt;/dev/null | <span class="built_in">sort</span> -hr | <span class="built_in">head</span> -n 10</span><br></pre></td></tr></table></figure>
+
+<p>Queste analisi a imbuto ti consentono di scendere gradualmente fino ai singoli file più ingombranti.</p>
+<hr>
+<h3 id="Cercare-file-di-grandi-dimensioni"><a href="#Cercare-file-di-grandi-dimensioni" class="headerlink" title="Cercare file di grandi dimensioni"></a>Cercare file di grandi dimensioni</h3><p>Se desideri individuare direttamente i file più pesanti, puoi utilizzare:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -<span class="built_in">type</span> f -size +100M 2&gt;/dev/null | <span class="built_in">head</span> -n 20</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>find /</code>: inizia la ricerca dalla radice  </li>
+<li><code>-type f</code>: cerca solo file  </li>
+<li><code>-size +100M</code>: limita la ricerca ai file maggiori di 100MB  </li>
+<li><code>2&gt;/dev/null</code>: sopprime i messaggi di errore su directory non accessibili  </li>
+<li><code>head -n 20</code>: mostra solo i primi 20 risultati</li>
+</ul>
+<p>In questo modo otterrai una rapida lista dei maggiori responsabili del consumo di spazio.</p>
+<hr>
+<h3 id="Strumenti-interattivi-ncdu"><a href="#Strumenti-interattivi-ncdu" class="headerlink" title="Strumenti interattivi: ncdu"></a>Strumenti interattivi: ncdu</h3><p>Se puoi installare nuovi tool nel tuo HomeLab, <code>ncdu</code> è uno strumento interattivo molto utile:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt update</span><br><span class="line">apt install ncdu</span><br></pre></td></tr></table></figure>
+
+<p>Una volta installato, puoi eseguirlo con:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ncdu /home/utente</span><br></pre></td></tr></table></figure>
+
+<p><code>ncdu</code> fornisce un’interfaccia testuale per navigare tra le directory, visualizzarne le dimensioni e, se necessario, eliminare i file direttamente dall’interfaccia. Eccone simile esempio:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ncdu 1.19 ~ Use the arrow keys to navigate, press ? <span class="keyword">for</span> <span class="built_in">help</span></span><br><span class="line">--- /home/utente ---------------------------------------------------------------------------</span><br><span class="line">  120.0 MiB [########################]  /progettoX</span><br><span class="line">   60.5 MiB [############            ]  /.local</span><br><span class="line">   32.2 MiB [#####                   ]  /.cache</span><br><span class="line">   15.0 MiB [##                      ]  /documenti</span><br><span class="line">    5.0 MiB [                        ]  /.ssh</span><br><span class="line">    2.0 MiB [                        ]  config_backup.tar.gz</span><br><span class="line">    1.0 MiB [                        ]  notes.txt</span><br><span class="line">   40.0 KiB [                        ]  .bash_history</span><br><span class="line">    4.0 KiB [                        ]  .bashrc</span><br><span class="line">    4.0 KiB [                        ]  .profile</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="Altri-comandi-utili"><a href="#Altri-comandi-utili" class="headerlink" title="Altri comandi utili"></a>Altri comandi utili</h3><ol>
+<li><p><strong><code>du -sh *</code> nella directory corrente</strong><br>Mostra la dimensione di ogni directory e file nel percorso corrente, per una rapida panoramica.</p>
+</li>
+<li><p><strong><code>lsof +aL1 /NOME_MONTAGGIO</code></strong><br>A volte lo spazio è occupato da file già cancellati ma ancora aperti da qualche processo. Questo comando mostra i file aperti con link count zero, evidenziando i casi in cui è sufficiente terminare il processo per liberare spazio.</p>
+</li>
+<li><p><strong><code>df -i</code></strong><br>Se sospetti che non sia lo spazio ad esaurirsi, ma gli inode, <code>df -i</code> ti mostrerà quanti inode sono utilizzati. Gli inode sono strutture dati utilizzate per gestire informazioni sui file, come metadati, permessi e puntatori al contenuto; un eccesso di file molto piccoli può saturare il numero di inode disponibili.</p>
+</li>
+</ol>
+<hr>
+<h3 id="Caso-reale-avviso-da-un-servizio-di-monitoraggio-Nagios"><a href="#Caso-reale-avviso-da-un-servizio-di-monitoraggio-Nagios" class="headerlink" title="Caso reale: avviso da un servizio di monitoraggio (Nagios)"></a>Caso reale: avviso da un servizio di monitoraggio (Nagios)</h3><p>Vediamo ora un esempio pratico di come questi comandi possano risultare utili, sia in un’infrastruttura aziendale complessa che in un semplice HomeLab. È una pratica diffusa configurare uno o più servizi di monitoraggio, come Nagios o Zabbix, per tenere sotto controllo lo stato delle macchine. Questi strumenti possono raccogliere dati in modi diversi:</p>
+<ul>
+<li><p><strong>Con agent</strong>: Il sistema monitorato esegue un software agente (come <code>NRPE</code> per Nagios o l’agente nativo di Zabbix) che invia periodicamente informazioni sullo stato delle risorse (utilizzo CPU, RAM, spazio disco, servizi attivi) al server di monitoraggio.</p>
+</li>
+<li><p><strong>Senza agent (agentless)</strong>: Il server di monitoraggio interroga direttamente i sistemi target usando protocolli standard come SNMP, WMI (per macchine Windows) o SSH. In questo caso non è necessario installare nulla sul sistema da controllare, riducendo così la complessità dell’infrastruttura.</p>
+</li>
+</ul>
+<p>Nel mio HomeLab, ad esempio, ho ricevuto un avviso da Nagios, che segnalava una situazione critica su un host generico (<code>NOME_HOST</code>). Ecco un esempio del messaggio:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">***** Nagios Monitor XI Alert *****</span><br><span class="line"></span><br><span class="line">Notification Type: PROBLEM</span><br><span class="line"></span><br><span class="line">Service: Check linux disk usage </span><br><span class="line">Host: NOME_HOST </span><br><span class="line">Address: NOME_INDIRIZZO_IP </span><br><span class="line">State: CRITICAL</span><br><span class="line"></span><br><span class="line">Date/Time: NOME_DATA_ORA</span><br><span class="line"></span><br><span class="line">Additional Info:</span><br><span class="line"></span><br><span class="line">CRITICAL. DISK STATS: / al 90%, /opt/NOME_DIRECTORY al 100%.</span><br></pre></td></tr></table></figure>
+
+
+<p>Questa notifica mi ha spinto a utilizzare i comandi sopra descritti, individuando con facilità i file e le directory più ingombranti. Ciò mi ha permesso di liberare spazio in modo mirato e sicuro, riducendo l’impatto sull’ambiente e prevenendo potenziali downtime.</p>
+<hr>
+<p><strong>In conclusione</strong>, utilizzare comandi come <code>df</code>, <code>du</code>, <code>find</code>, o tool interattivi come <code>ncdu</code>, ti permette di individuare rapidamente le aree problematiche del tuo spazio su disco, mantenendo un approccio umile, controllato e sicuro nel tempo. Queste pratiche diventano fondamentali per evitare situazioni di emergenza e mantenere il tuo HomeLab ottimizzato e funzionale.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/" data-id="cm4lllj3e0000h6j953cp1h9z" data-title="Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HomeLab/" rel="tag">HomeLab</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Nagios/" rel="tag">Nagios</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/manutenzione/" rel="tag">manutenzione</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/spazio-disco/" rel="tag">spazio disco</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/">Amministrazione di Sistema</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/Linux/">Linux</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HomeLab/" rel="tag">HomeLab</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nagios/" rel="tag">Nagios</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amministrazione-sistemi/" rel="tag">amministrazione-sistemi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ansible/" rel="tag">ansible</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/manutenzione/" rel="tag">manutenzione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/networking/" rel="tag">networking</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/practice/" rel="tag">practice</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sicurezza/" rel="tag">sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spazio-disco/" rel="tag">spazio disco</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ssh/" rel="tag">ssh</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Configurazione/" style="font-size: 13.33px;">Configurazione</a> <a href="/tags/HomeLab/" style="font-size: 10px;">HomeLab</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/Nagios/" style="font-size: 10px;">Nagios</a> <a href="/tags/SSH/" style="font-size: 13.33px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 13.33px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 13.33px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 13.33px;">Ubuntu 22.04</a> <a href="/tags/amministrazione-sistemi/" style="font-size: 10px;">amministrazione-sistemi</a> <a href="/tags/ansible/" style="font-size: 10px;">ansible</a> <a href="/tags/automazione/" style="font-size: 16.67px;">automazione</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/manutenzione/" style="font-size: 10px;">manutenzione</a> <a href="/tags/networking/" style="font-size: 20px;">networking</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 13.33px;">sicurezza</a> <a href="/tags/spazio-disco/" style="font-size: 10px;">spazio disco</a> <a href="/tags/ssh/" style="font-size: 13.33px;">ssh</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/">Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/">Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/">Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/09/Automatizzare-la-configurazione-differenziata-dell-accesso-SSH-con-Ansible/">Automatizzare la configurazione differenziata dell&#39;accesso SSH con Ansible</a>
+          </li>
+        
+          <li>
+            <a href="/2024/12/08/Gestire-la-configurazione-di-rete-con-il-comando-ip-su-Linux/">Gestire la configurazione di rete con il comando ip su Linux</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 geegeek<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
