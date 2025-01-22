@@ -93,6 +93,100 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/" class="article-date">
+  <time class="dt-published" datetime="2025-01-22T10:00:00.000Z" itemprop="datePublished">2025-01-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Guide/">Guide</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/">Gestione dei permessi di gruppo con il bit SGID su Linux</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Gestione-dei-permessi-di-gruppo-con-il-bit-SGID"><a href="#Gestione-dei-permessi-di-gruppo-con-il-bit-SGID" class="headerlink" title="Gestione dei permessi di gruppo con il bit SGID"></a>Gestione dei permessi di gruppo con il bit SGID</h1><h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In molti sistemi Linux&#x2F;Unix, quando un utente carica o modifica un file<br>in una directory condivisa, il file assume di default come <em>owner</em><br>l&#39;utente stesso e come <em>group</em> il gruppo primario di quell&#39;utente.<br>Questo può creare problemi di collaborazione se in azienda è necessario<br>che più persone, appartenenti a un gruppo comune, possano gestire i file<br>senza dover ogni volta modificare i permessi.</p>
+<p>In questo articolo descriviamo un caso pratico in cui l&#39;utente <code>user1</code><br>caricava i file in una directory del server, ritrovandosi ogni volta con<br>permessi <code>user1:user1</code> invece di ereditare il gruppo condiviso <code>group1</code>.<br>Per risolvere definitivamente il problema, abbiamo impostato il bit SGID<br>(<em>Set Group ID</em>) sulla directory, associato a una corretta<br>configurazione di permessi e gruppi.</p>
+<h2 id="Il-problema"><a href="#Il-problema" class="headerlink" title="Il problema"></a>Il problema</h2><ol>
+<li><p>L’utente <code>user1</code> caricava e sovrascriveva file via FTP in una<br>directory condivisa (es. <code>/var/www/html/projectX</code>).</p>
+</li>
+<li><p>Ogni nuovo file assumeva come proprietà:</p>
+<ul>
+<li><em>owner</em>: <code>user1</code></li>
+<li><em>group</em>: <code>user1</code></li>
+</ul>
+<p>Invece di ereditare il gruppo <code>group1</code>.</p>
+</li>
+<li><p>Ciò ostacolava la modifica dei file da parte di altri membri<br>appartenenti allo stesso gruppo <code>group1</code> e costringeva a lanci di<br>comandi di correzione dei permessi manuali o tramite script<br>ricorrenti.</p>
+</li>
+</ol>
+<h2 id="La-causa"><a href="#La-causa" class="headerlink" title="La causa"></a>La causa</h2><p>Su Linux&#x2F;Unix, la creazione di un nuovo file assegna di default: - come<br><em>owner</em>, l&#39;utente che crea fisicamente il file - come <em>group</em>, il<br>gruppo primario di quello stesso utente</p>
+<p>Se la directory appartiene a un altro gruppo (per esempio <code>group1</code>), ma<br>non ha attivato il bit SGID, i nuovi file <em>non</em> ereditano quel gruppo,<br>finendo con l&#39;essere proprietà del gruppo primario di chi li ha creati<br>(<code>user1</code> in questo caso).</p>
+<h2 id="La-soluzione"><a href="#La-soluzione" class="headerlink" title="La soluzione"></a>La soluzione</h2><p>Per risolvere il problema, abbiamo eseguito i seguenti passaggi:</p>
+<ol>
+<li><p><strong>Aggiunta di ``user1`` al gruppo ``group1`` (se<br>necessario)</strong></p>
+<p>Se l&#39;utente non faceva già parte di <code>group1</code>, lo abbiamo aggiunto:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> usermod -aG group1 user1</span><br></pre></td></tr></table></figure>
+
+<p>In questo modo, anche se i file ereditano il gruppo <code>group1</code>,<br><code>user1</code> rimane abilitato a scrivere nella directory.</p>
+</li>
+<li><p><strong>Impostazione di ownership e permessi sulla directory condivisa</strong></p>
+<p>Abbiamo cambiato l’ownership della directory affinché appartenesse<br>all’utente (o a un utente di servizio) e soprattutto al gruppo<br><code>group1</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R someowner:group1 /var/www/html/projectX</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> g+rwx /var/www/html/projectX</span><br></pre></td></tr></table></figure>
+
+<p>Ora la directory consente al gruppo di leggere, scrivere ed<br>eseguire, fornendo un accesso completo agli altri membri di<br><code>group1</code>.</p>
+</li>
+<li><p><strong>Attivazione del bit SGID</strong></p>
+<p>Questo è il passaggio chiave. Abbiamo applicato il bit SGID con:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> g+s /var/www/html/projectX</span><br></pre></td></tr></table></figure>
+
+<p>Con il bit SGID su una directory, <em>ogni file o sottodirectory creati<br>all’interno</em> erediteranno automaticamente il gruppo della directory<br>stessa, ovvero <code>group1</code>. Ciò significa che, anche se l&#39;utente<br><code>user1</code> carica i file, questi avranno come gruppo <code>group1</code> invece di<br><code>user1</code>.</p>
+</li>
+</ol>
+<h2 id="Come-funziona-il-bit-SGID"><a href="#Come-funziona-il-bit-SGID" class="headerlink" title="Come funziona il bit SGID"></a>Come funziona il bit SGID</h2><p><em>SGID</em> sta per <em>Set Group ID</em>. Quando è applicato su una directory,<br>forza i file creati al suo interno a conservare il gruppo della<br>directory, a prescindere dal gruppo primario dell’utente che li genera.<br>Questo meccanismo consente di gestire in modo coerente una directory<br>condivisa da più utenti, senza dover continuamente correggere i<br>permessi.</p>
+<h2 id="Verificare-l’efficacia"><a href="#Verificare-l’efficacia" class="headerlink" title="Verificare l’efficacia"></a>Verificare l’efficacia</h2><p>Una volta attivato il bit SGID, puoi controllare i permessi con:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld /var/www/html/projectX</span><br></pre></td></tr></table></figure>
+
+<p>L’output dovrebbe presentare la lettera <code>s</code> nella sezione dei permessi<br>di gruppo, ad esempio:</p>
+<pre><code>drwxrwsr-x  2 someowner group1 4096 Jan 20 12:00 /var/www/html/projectX
+</code></pre>
+<p>Questo indica che la directory ha il bit SGID attivato. A questo punto,<br>se <code>user1</code> (che è parte di <code>group1</code>) crea un nuovo file <code>nuovofile.txt</code><br>nella directory, dovresti vedere l&#39;ownership come:</p>
+<pre><code>-rw-rw-r--  1 user1 group1  0 Jan 20 12:00 nuovofile.txt
+</code></pre>
+<p>e non più <code>user1:user1</code>.</p>
+<h2 id="Conclusioni"><a href="#Conclusioni" class="headerlink" title="Conclusioni"></a>Conclusioni</h2><p>L’utilizzo del bit SGID su una directory, insieme a una corretta<br>assegnazione di permessi e gruppi, è una soluzione <em>pulita</em> e<br><em>scalabile</em> per gestire in modo collaborativo file e cartelle in<br>ambienti Linux&#x2F;Unix. Elimina la necessità di continui interventi manuali<br>o script di “fix” dei permessi, assicurando un flusso di lavoro più<br>efficiente e meno soggetto a errori.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://geegeek.github.io/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/" data-id="cm67p60e700004nj996cibzg8" data-title="Gestione dei permessi di gruppo con il bit SGID su Linux" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/File-System/" rel="tag">File System</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Permessi/" rel="tag">Permessi</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SGID/" rel="tag">SGID</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-Generazione-e-condivisione-di-password-online-tramite-github-Pages" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/12/16/Generazione-e-condivisione-di-password-online-tramite-github-Pages/" class="article-date">
@@ -222,7 +316,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/16/Generazione-e-condivisione-di-password-online-tramite-github-Pages/" data-id="cm4yqctk60009sij9bu8j9bbl" data-title="Generazione e condivisione di password online tramite github Pages" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/16/Generazione-e-condivisione-di-password-online-tramite-github-Pages/" data-id="cm5wmibd3000935j9amdqcoqa" data-title="Generazione e condivisione di password online tramite github Pages" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -334,7 +428,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/" data-id="cm4yqctjv0002sij95fnwb40q" data-title="Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/12/Come-identificare-e-gestire-i-file-che-occupano-troppo-spazio-su-disco-da-linea-di-comando/" data-id="cm5wmibcl000235j97csic3hh" data-title="Come identificare e gestire i file che occupano troppo spazio su disco da linea di comando" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -456,7 +550,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/" data-id="cm4yqctk40007sij9frsg1q8e" data-title="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/10/Esempi-Pratici-di-Expect-sulla-CLI-Linux-Accesso-Remoto-e-Gestione-Password/" data-id="cm5wmibd2000735j9b8cl7wfb" data-title="Esempi Pratici di Expect sulla CLI Linux: Accesso Remoto e Gestione Password" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -622,7 +716,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/09/Automatizzare-la-configurazione-differenziata-dell-accesso-SSH-con-Ansible/" data-id="cm4yqctjl0001sij964nr4wln" data-title="Automatizzare la configurazione differenziata dell&#39;accesso SSH con Ansible" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/09/Automatizzare-la-configurazione-differenziata-dell-accesso-SSH-con-Ansible/" data-id="cm5wmibch000135j9h0xdh5bx" data-title="Automatizzare la configurazione differenziata dell&#39;accesso SSH con Ansible" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -791,7 +885,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/" data-id="cm4yqctk8000dsij91vbrgkzk" data-title="Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/" data-id="cm5wmibd5000d35j97eczcbj6" data-title="Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -986,7 +1080,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/08/Gestire-la-configurazione-di-rete-con-il-comando-ip-su-Linux/" data-id="cm4yqctk7000bsij98bl8cx2l" data-title="Gestire la configurazione di rete con il comando ip su Linux" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/08/Gestire-la-configurazione-di-rete-con-il-comando-ip-su-Linux/" data-id="cm5wmibd4000b35j9436q0s8y" data-title="Gestire la configurazione di rete con il comando ip su Linux" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1113,7 +1207,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/05/Configurare-SSH-su-Ubuntu-Soluzioni-a-Errori-Comuni/" data-id="cm4yqctk20004sij9bu2x24r7" data-title="Configurare SSH su Ubuntu: Soluzioni a Errori Comuni" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/05/Configurare-SSH-su-Ubuntu-Soluzioni-a-Errori-Comuni/" data-id="cm5wmibcs000435j9g4ea2l6b" data-title="Configurare SSH su Ubuntu: Soluzioni a Errori Comuni" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1213,7 +1307,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/" data-id="cm4yqctk30006sij96vnu5zy6" data-title="Configurazione di un server ssh su su ubuntu-220.04" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/12/04/Configurazione-di-un-server-ssh-su-subuntu-220.04/" data-id="cm5wmibd0000635j9anl75wmc" data-title="Configurazione di un server ssh su su ubuntu-220.04" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1261,7 +1355,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/" data-id="cm4yqctkc000fsij98nroheqv" data-title="L&#39;importanza della condivisione: un viaggio da sistemista" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2024/10/31/L-importanza-della-condivisione-un-viaggio-da-sistemista/" data-id="cm5wmibda000f35j9e8ux788k" data-title="L&#39;importanza della condivisione: un viaggio da sistemista" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1275,58 +1369,12 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
 
 
   
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/10/31/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2024-10-31T14:36:48.420Z" itemprop="datePublished">2024-10-31</time>
-</a>
+
+
+  <nav id="page-nav">
     
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/10/31/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2024/10/31/hello-world/" data-id="cm4yqctkd000hsij9hyyeb6r5" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+  </nav>
 
 </section>
         
@@ -1336,7 +1384,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/">Amministrazione di Sistema</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/Linux/">Linux</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/Ubuntu/">Ubuntu</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Sicurezza-Informatica/">Sicurezza Informatica</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Sicurezza-Informatica/Strumenti-Online/">Strumenti Online</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/">Amministrazione di Sistema</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Amministrazione-di-Sistema/Linux/">Linux</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Guide/">Guide</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/SSH/Ubuntu/">Ubuntu</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/">SSH</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SSH/Ubuntu/">Ubuntu</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Sicurezza-Informatica/">Sicurezza Informatica</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Sicurezza-Informatica/Strumenti-Online/">Strumenti Online</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1346,7 +1394,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HomeLab/" rel="tag">HomeLab</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nagios/" rel="tag">Nagios</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amministrazione-sistemi/" rel="tag">amministrazione-sistemi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ansible/" rel="tag">ansible</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/manutenzione/" rel="tag">manutenzione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/networking/" rel="tag">networking</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/one-time-password/" rel="tag">one-time password</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/password-generator/" rel="tag">password generator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/practice/" rel="tag">practice</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sicurezza/" rel="tag">sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spazio-disco/" rel="tag">spazio disco</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ssh/" rel="tag">ssh</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Configurazione/" rel="tag">Configurazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/File-System/" rel="tag">File System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HomeLab/" rel="tag">HomeLab</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nagios/" rel="tag">Nagios</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Permessi/" rel="tag">Permessi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGID/" rel="tag">SGID</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sicurezza/" rel="tag">Sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sysadmin/" rel="tag">Sysadmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu-22-04/" rel="tag">Ubuntu 22.04</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amministrazione-sistemi/" rel="tag">amministrazione-sistemi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ansible/" rel="tag">ansible</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/automazione/" rel="tag">automazione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/manutenzione/" rel="tag">manutenzione</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/networking/" rel="tag">networking</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/one-time-password/" rel="tag">one-time password</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/password-generator/" rel="tag">password generator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/practice/" rel="tag">practice</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sicurezza/" rel="tag">sicurezza</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spazio-disco/" rel="tag">spazio disco</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ssh/" rel="tag">ssh</a></li></ul>
     </div>
   </div>
 
@@ -1356,7 +1404,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Configurazione/" style="font-size: 13.33px;">Configurazione</a> <a href="/tags/HomeLab/" style="font-size: 10px;">HomeLab</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/Nagios/" style="font-size: 10px;">Nagios</a> <a href="/tags/SSH/" style="font-size: 13.33px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 13.33px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 13.33px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 13.33px;">Ubuntu 22.04</a> <a href="/tags/amministrazione-sistemi/" style="font-size: 10px;">amministrazione-sistemi</a> <a href="/tags/ansible/" style="font-size: 10px;">ansible</a> <a href="/tags/automazione/" style="font-size: 16.67px;">automazione</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/manutenzione/" style="font-size: 10px;">manutenzione</a> <a href="/tags/networking/" style="font-size: 20px;">networking</a> <a href="/tags/one-time-password/" style="font-size: 10px;">one-time password</a> <a href="/tags/password-generator/" style="font-size: 10px;">password generator</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 16.67px;">sicurezza</a> <a href="/tags/spazio-disco/" style="font-size: 10px;">spazio disco</a> <a href="/tags/ssh/" style="font-size: 13.33px;">ssh</a>
+      <a href="/tags/Configurazione/" style="font-size: 13.33px;">Configurazione</a> <a href="/tags/File-System/" style="font-size: 10px;">File System</a> <a href="/tags/HomeLab/" style="font-size: 10px;">HomeLab</a> <a href="/tags/Linux/" style="font-size: 13.33px;">Linux</a> <a href="/tags/Nagios/" style="font-size: 10px;">Nagios</a> <a href="/tags/Permessi/" style="font-size: 10px;">Permessi</a> <a href="/tags/SGID/" style="font-size: 10px;">SGID</a> <a href="/tags/SSH/" style="font-size: 13.33px;">SSH</a> <a href="/tags/Sicurezza/" style="font-size: 13.33px;">Sicurezza</a> <a href="/tags/Sysadmin/" style="font-size: 13.33px;">Sysadmin</a> <a href="/tags/Ubuntu-22-04/" style="font-size: 13.33px;">Ubuntu 22.04</a> <a href="/tags/amministrazione-sistemi/" style="font-size: 10px;">amministrazione-sistemi</a> <a href="/tags/ansible/" style="font-size: 10px;">ansible</a> <a href="/tags/automazione/" style="font-size: 16.67px;">automazione</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/manutenzione/" style="font-size: 10px;">manutenzione</a> <a href="/tags/networking/" style="font-size: 20px;">networking</a> <a href="/tags/one-time-password/" style="font-size: 10px;">one-time password</a> <a href="/tags/password-generator/" style="font-size: 10px;">password generator</a> <a href="/tags/practice/" style="font-size: 10px;">practice</a> <a href="/tags/sicurezza/" style="font-size: 16.67px;">sicurezza</a> <a href="/tags/spazio-disco/" style="font-size: 10px;">spazio disco</a> <a href="/tags/ssh/" style="font-size: 13.33px;">ssh</a>
     </div>
   </div>
 
@@ -1365,7 +1413,7 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
     </div>
   </div>
 
@@ -1376,6 +1424,10 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/">Gestione dei permessi di gruppo con il bit SGID su Linux</a>
+          </li>
         
           <li>
             <a href="/2024/12/16/Generazione-e-condivisione-di-password-online-tramite-github-Pages/">Generazione e condivisione di password online tramite github Pages</a>
@@ -1391,10 +1443,6 @@ Con l’approccio presentato in questo articolo, è possibile migliorare la prop
         
           <li>
             <a href="/2024/12/09/Automatizzare-la-configurazione-differenziata-dell-accesso-SSH-con-Ansible/">Automatizzare la configurazione differenziata dell&#39;accesso SSH con Ansible</a>
-          </li>
-        
-          <li>
-            <a href="/2024/12/09/Implementare-un-server-SSH-su-Ubuntu-Debian-configurazioni-differenziate-e-accesso-esterno-con-port-forwarding/">Implementare un server SSH su Ubuntu/Debian, configurazioni differenziate e accesso esterno con port forwarding</a>
           </li>
         
       </ul>
