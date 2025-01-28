@@ -4,22 +4,22 @@
   <meta charset="utf-8">
   
   
-  <title>Gestione dei permessi di gruppo con il bit SGID su Linux | Geegeek&#39;xo</title>
+  <title>Impostazione dei permessi in /var/www/html con il bit SGID | Geegeek&#39;xo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Scopri come utilizzare il bit SGID su Linux per gestire i permessi di gruppo e semplificare la collaborazione in directory condivise, evitando continui interventi manuali.">
+  <meta name="description" content="Scopri come configurare i permessi di gruppo in &#x2F;var&#x2F;www&#x2F;html con il bit SGID, ottimizzando la collaborazione e mantenendo buone pratiche di sicurezza.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Gestione dei permessi di gruppo con il bit SGID su Linux">
-<meta property="og:url" content="https://geegeek.github.io/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/index.html">
+<meta property="og:title" content="Impostazione dei permessi in &#x2F;var&#x2F;www&#x2F;html con il bit SGID">
+<meta property="og:url" content="https://geegeek.github.io/2025/01/28/Impostazione-dei-permessi-in-var-www-html-con-il-bit-SGID/index.html">
 <meta property="og:site_name" content="Geegeek&#39;xo">
-<meta property="og:description" content="Scopri come utilizzare il bit SGID su Linux per gestire i permessi di gruppo e semplificare la collaborazione in directory condivise, evitando continui interventi manuali.">
+<meta property="og:description" content="Scopri come configurare i permessi di gruppo in &#x2F;var&#x2F;www&#x2F;html con il bit SGID, ottimizzando la collaborazione e mantenendo buone pratiche di sicurezza.">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2025-01-22T10:00:00.000Z">
-<meta property="article:modified_time" content="2025-01-22T09:25:27.349Z">
+<meta property="article:published_time" content="2025-01-28T13:47:13.000Z">
+<meta property="article:modified_time" content="2025-01-28T13:48:40.374Z">
 <meta property="article:author" content="geegeek">
 <meta property="article:tag" content="Linux">
-<meta property="article:tag" content="SGID">
 <meta property="article:tag" content="Permessi">
-<meta property="article:tag" content="File System">
+<meta property="article:tag" content="bit SGID">
+<meta property="article:tag" content="&#x2F;var&#x2F;www&#x2F;html">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Geegeek'xo" type="application/atom+xml">
@@ -99,14 +99,14 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-Impostazione-dei-permessi-in-var-www-html-con-il-bit-SGID" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/" class="article-date">
-  <time class="dt-published" datetime="2025-01-22T10:00:00.000Z" itemprop="datePublished">2025-01-22</time>
+    <a href="/2025/01/28/Impostazione-dei-permessi-in-var-www-html-con-il-bit-SGID/" class="article-date">
+  <time class="dt-published" datetime="2025-01-28T13:47:13.000Z" itemprop="datePublished">2025-01-28</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Guide/">Guide</a>
+    <a class="article-category-link" href="/categories/SysAdmin/">SysAdmin</a>
   </div>
 
   </div>
@@ -117,7 +117,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Gestione dei permessi di gruppo con il bit SGID su Linux
+      Impostazione dei permessi in /var/www/html con il bit SGID
     </h1>
   
 
@@ -125,65 +125,58 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>In molti sistemi Linux&#x2F;Unix, quando un utente carica o modifica un file<br>in una directory condivisa, il file assume di default come <em>owner</em><br>l&#39;utente stesso e come <em>group</em> il gruppo primario di quell&#39;utente.<br>Questo può creare problemi di collaborazione se in azienda è necessario<br>che più persone, appartenenti a un gruppo comune, possano gestire i file<br>senza dover ogni volta modificare i permessi.</p>
-<p>In questo articolo descriviamo un caso pratico in cui l&#39;utente <code>user1</code><br>caricava i file in una directory del server, ritrovandosi ogni volta con<br>permessi <code>user1:user1</code> invece di ereditare il gruppo condiviso <code>group1</code>.<br>Per risolvere definitivamente il problema, abbiamo impostato il bit SGID<br>(<em>Set Group ID</em>) sulla directory, associato a una corretta<br>configurazione di permessi e gruppi.</p>
-<h2 id="Il-problema"><a href="#Il-problema" class="headerlink" title="Il problema"></a>Il problema</h2><ol>
-<li><p>L’utente <code>user1</code> caricava e sovrascriveva file via FTP in una<br>directory condivisa (es. <code>/var/www/html/projectX</code>).</p>
-</li>
-<li><p>Ogni nuovo file assumeva come proprietà:</p>
-<ul>
-<li><em>owner</em>: <code>user1</code></li>
-<li><em>group</em>: <code>user1</code></li>
-</ul>
-<p>Invece di ereditare il gruppo <code>group1</code>.</p>
-</li>
-<li><p>Ciò ostacolava la modifica dei file da parte di altri membri<br>appartenenti allo stesso gruppo <code>group1</code> e costringeva a lanci di<br>comandi di correzione dei permessi manuali o tramite script<br>ricorrenti.</p>
-</li>
+        <h2 id="Introduzione"><a href="#Introduzione" class="headerlink" title="Introduzione"></a>Introduzione</h2><p>Quando più utenti devono collaborare su un progetto in un ambiente<br>Linux, nasce l’esigenza di gestire correttamente i permessi su file e<br>directory. Per evitare che i file creati da un singolo utente assumano<br>come <em>owner</em> e <em>group</em> il suo gruppo primario, possiamo sfruttare il bit<br>SGID (<em>Set Group ID</em>) sulle directory condivise.</p>
+<p>In questo articolo vedremo come impostare il bit SGID solo sulle<br>directory — perché è pensato esclusivamente per gestire l’ereditarietà<br>del gruppo —, così da semplificare la collaborazione in una struttura<br>come <code>/var/www/html</code>.</p>
+<h2 id="Il-problema"><a href="#Il-problema" class="headerlink" title="Il problema"></a>Il problema</h2><p>Supponiamo che un utente (es. <code>user1</code>) carichi o modifichi file via FTP<br>nella directory <code>/var/www/html</code>. Di default, ogni file nuovo assume come<br>proprietario <code>user1</code> e come gruppo il gruppo primario di <code>user1</code> (es.<br><code>user1</code> stesso). Se vogliamo che il gruppo di questi file sia invece<br><code>www-data</code> (tipico in ambiente web), dobbiamo configurare correttamente<br>i permessi e impostare il bit SGID sulle directory.</p>
+<h2 id="Obiettivi"><a href="#Obiettivi" class="headerlink" title="Obiettivi"></a>Obiettivi</h2><ol>
+<li>Far sì che tutte le directory sotto <code>/var/www/html</code> abbiano il<br>gruppo <code>www-data</code> e il bit SGID attivo, in modo che qualsiasi file<br>creato o caricato al loro interno eredi automaticamente il gruppo<br><code>www-data</code>.</li>
+<li>Applicare permessi ragionevoli per directory (2775) e file (0644),<br>così da garantire che i membri del gruppo <code>www-data</code> possano<br>interagire correttamente con il contenuto, mantenendo un livello di<br>sicurezza adeguato.</li>
+<li>Verificare che tutti i file e le directory appartengano<br>effettivamente al gruppo <code>www-data</code>.</li>
 </ol>
-<h2 id="La-causa"><a href="#La-causa" class="headerlink" title="La causa"></a>La causa</h2><p>Su Linux&#x2F;Unix, la creazione di un nuovo file assegna di default: - come<br><em>owner</em>, l&#39;utente che crea fisicamente il file - come <em>group</em>, il<br>gruppo primario di quello stesso utente</p>
-<p>Se la directory appartiene a un altro gruppo (per esempio <code>group1</code>), ma<br>non ha attivato il bit SGID, i nuovi file <em>non</em> ereditano quel gruppo,<br>finendo con l&#39;essere proprietà del gruppo primario di chi li ha creati<br>(<code>user1</code> in questo caso).</p>
-<h2 id="La-soluzione"><a href="#La-soluzione" class="headerlink" title="La soluzione"></a>La soluzione</h2><p>Per risolvere il problema, abbiamo eseguito i seguenti passaggi:</p>
+<h2 id="Passo-1-Assegnare-proprieta-e-gruppo-a-var-www-html"><a href="#Passo-1-Assegnare-proprieta-e-gruppo-a-var-www-html" class="headerlink" title="Passo 1: Assegnare proprietà e gruppo a &#x2F;var&#x2F;www&#x2F;html"></a>Passo 1: Assegnare proprietà e gruppo a &#x2F;var&#x2F;www&#x2F;html</h2><p>Per prima cosa, se non l’hai già fatto, assegna ricorsivamente owner e<br>gruppo <code>www-data:www-data</code> a <code>/var/www/html</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R www-data:www-data /var/www/html</span><br></pre></td></tr></table></figure>
+
+<p>Questo fa sì che l’utente e il gruppo su tutti i file e directory<br>all’interno di <code>/var/www/html</code> siano ora <code>www-data:www-data</code>.</p>
+<h2 id="Passo-2-Impostare-i-permessi-sui-file-e-sulle-directory"><a href="#Passo-2-Impostare-i-permessi-sui-file-e-sulle-directory" class="headerlink" title="Passo 2: Impostare i permessi sui file e sulle directory"></a>Passo 2: Impostare i permessi sui file e sulle directory</h2><p>Distinguiamo due situazioni: <em>directory</em> e <em>file</em>.</p>
 <ol>
-<li><p><strong>Aggiunta di ``user1`` al gruppo ``group1`` (se<br>necessario)</strong></p>
-<p>Se l&#39;utente non faceva già parte di <code>group1</code>, lo abbiamo aggiunto:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> usermod -aG group1 user1</span><br></pre></td></tr></table></figure>
-
-<p>In questo modo, anche se i file ereditano il gruppo <code>group1</code>,<br><code>user1</code> rimane abilitato a scrivere nella directory.</p>
+<li><strong>Directory</strong>: vogliamo che abbiano i permessi 2775 (<em>rwxrwsr-x</em>).<ul>
+<li>Il “2” all’inizio indica il bit SGID, così che tutti i nuovi<br>file&#x2F;dir ereditino il gruppo della cartella madre (in questo<br>caso, <code>www-data</code>).</li>
+<li>“775” permette al proprietario (<code>www-data</code>) e al gruppo di<br>leggere, scrivere ed entrare nella directory; gli “altri”<br>possono solo leggere ed entrare (<code>r-x</code>).</li>
+</ul>
 </li>
-<li><p><strong>Impostazione di ownership e permessi sulla directory condivisa</strong></p>
-<p>Abbiamo cambiato l’ownership della directory affinché appartenesse<br>all’utente (o a un utente di servizio) e soprattutto al gruppo<br><code>group1</code>:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R someowner:group1 /var/www/html/projectX</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> g+rwx /var/www/html/projectX</span><br></pre></td></tr></table></figure>
-
-<p>Ora la directory consente al gruppo di leggere, scrivere ed<br>eseguire, fornendo un accesso completo agli altri membri di<br><code>group1</code>.</p>
-</li>
-<li><p><strong>Attivazione del bit SGID</strong></p>
-<p>Questo è il passaggio chiave. Abbiamo applicato il bit SGID con:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> g+s /var/www/html/projectX</span><br></pre></td></tr></table></figure>
-
-<p>Con il bit SGID su una directory, <em>ogni file o sottodirectory creati<br>all’interno</em> erediteranno automaticamente il gruppo della directory<br>stessa, ovvero <code>group1</code>. Ciò significa che, anche se l&#39;utente<br><code>user1</code> carica i file, questi avranno come gruppo <code>group1</code> invece di<br><code>user1</code>.</p>
+<li><strong>File</strong>: vogliamo che abbiano i permessi 0644 (<em>rw-r--r--</em>).<ul>
+<li>In questo modo, il proprietario e il gruppo possono leggere e<br>scrivere, mentre gli altri possono solo leggere (nessuna<br>esecuzione di default).</li>
+</ul>
 </li>
 </ol>
-<h2 id="Come-funziona-il-bit-SGID"><a href="#Come-funziona-il-bit-SGID" class="headerlink" title="Come funziona il bit SGID"></a>Come funziona il bit SGID</h2><p><em>SGID</em> sta per <em>Set Group ID</em>. Quando è applicato su una directory,<br>forza i file creati al suo interno a conservare il gruppo della<br>directory, a prescindere dal gruppo primario dell’utente che li genera.<br>Questo meccanismo consente di gestire in modo coerente una directory<br>condivisa da più utenti, senza dover continuamente correggere i<br>permessi.</p>
-<h2 id="Verificare-l’efficacia"><a href="#Verificare-l’efficacia" class="headerlink" title="Verificare l’efficacia"></a>Verificare l’efficacia</h2><p>Una volta attivato il bit SGID, puoi controllare i permessi con:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld /var/www/html/projectX</span><br></pre></td></tr></table></figure>
+<p>Per applicare questi permessi ricorsivamente:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Imposta 2775 su tutte le directory</span></span><br><span class="line"><span class="built_in">sudo</span> find /var/www/html -<span class="built_in">type</span> d -<span class="built_in">exec</span> <span class="built_in">chmod</span> 2775 &#123;&#125; \;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Imposta 0644 su tutti i file</span></span><br><span class="line"><span class="built_in">sudo</span> find /var/www/html -<span class="built_in">type</span> f -<span class="built_in">exec</span> <span class="built_in">chmod</span> 0644 &#123;&#125; \;</span><br></pre></td></tr></table></figure>
 
-<p>L’output dovrebbe presentare la lettera <code>s</code> nella sezione dei permessi<br>di gruppo, ad esempio:</p>
-<pre><code>drwxrwsr-x  2 someowner group1 4096 Jan 20 12:00 /var/www/html/projectX
-</code></pre>
-<p>Questo indica che la directory ha il bit SGID attivato. A questo punto,<br>se <code>user1</code> (che è parte di <code>group1</code>) crea un nuovo file <code>nuovofile.txt</code><br>nella directory, dovresti vedere l&#39;ownership come:</p>
-<pre><code>-rw-rw-r--  1 user1 group1  0 Jan 20 12:00 nuovofile.txt
-</code></pre>
-<p>e non più <code>user1:user1</code>.</p>
-<h2 id="Conclusioni"><a href="#Conclusioni" class="headerlink" title="Conclusioni"></a>Conclusioni</h2><p>L’utilizzo del bit SGID su una directory, insieme a una corretta<br>assegnazione di permessi e gruppi, è una soluzione <em>pulita</em> e<br><em>scalabile</em> per gestire in modo collaborativo file e cartelle in<br>ambienti Linux&#x2F;Unix. Elimina la necessità di continui interventi manuali<br>o script di “fix” dei permessi, assicurando un flusso di lavoro più<br>efficiente e meno soggetto a errori.</p>
+<p>In questo modo, ogni directory avrà:<br><code>rwxrwsr-x www-data www-data (2775)</code>, mentre ogni file avrà:<br><code>rw-r--r-- www-data www-data (0644)</code>.</p>
+<h2 id="Passo-3-Verificare-che-il-bit-SGID-sia-applicato-solo-alle-directory"><a href="#Passo-3-Verificare-che-il-bit-SGID-sia-applicato-solo-alle-directory" class="headerlink" title="Passo 3: Verificare che il bit SGID sia applicato solo alle directory"></a>Passo 3: Verificare che il bit SGID sia applicato solo alle directory</h2><p>Il bit SGID va usato <em>solo</em> sulle directory, non sui file. Se vuoi<br>controllare che nelle directory sia attivo, puoi eseguire:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld /var/www/html</span><br></pre></td></tr></table></figure>
+
+<p>Vedrai un output simile:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">drwxrwsr-x  5 www-data www-data 4096 Jan 22 12:34 /var/www/html</span><br></pre></td></tr></table></figure>
+
+<p>dove la presenza di <code>s</code> nella sezione dei permessi del gruppo (<code>rws</code>)<br>indica che la directory ha il bit SGID attivo.</p>
+<p>Se accidentalmente hai applicato SGID anche ai file, puoi rimuoverlo dai<br>soli file con:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> find /var/www/html -<span class="built_in">type</span> f -<span class="built_in">exec</span> <span class="built_in">chmod</span> g-s &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Passo-4-Verificare-l’appartenenza-al-gruppo-www-data"><a href="#Passo-4-Verificare-l’appartenenza-al-gruppo-www-data" class="headerlink" title="Passo 4: Verificare l’appartenenza al gruppo www-data"></a>Passo 4: Verificare l’appartenenza al gruppo www-data</h2><p>Infine, se vuoi controllare che <em>tutti</em> i file e le directory<br>appartengano al gruppo <code>www-data</code> (e segnalare se qualcosa non va), puoi<br>usare un comando <code>find</code> dedicato:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> find /var/www/html -not -group www-data -<span class="built_in">exec</span> <span class="built_in">ls</span> -l &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<p>Se non viene stampato nulla, significa che tutti gli elementi presenti<br>in <code>/var/www/html</code> hanno già il gruppo <code>www-data</code>.</p>
+<h2 id="Conclusioni"><a href="#Conclusioni" class="headerlink" title="Conclusioni"></a>Conclusioni</h2><p>Configurare correttamente i permessi e il bit SGID in <code>/var/www/html</code> è<br>fondamentale per gestire un ambiente di sviluppo o produzione in cui più<br>utenti collaborano sui file. Impostando i permessi 2775 sulle directory<br>e 0644 sui file, e assicurandoti che il bit SGID sia attivo <em>solo</em> sulle<br>directory, potrai lavorare in modo coerente e ordinato, senza dover<br>correggere manualmente le impostazioni di proprietà ogni volta che<br>vengono caricati nuovi file.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://geegeek.github.io/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/" data-id="cm67p60e700004nj996cibzg8" data-title="Gestione dei permessi di gruppo con il bit SGID su Linux" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://geegeek.github.io/2025/01/28/Impostazione-dei-permessi-in-var-www-html-con-il-bit-SGID/" data-id="cm6gj9nub00002fj9h1wk4nkq" data-title="Impostazione dei permessi in /var/www/html con il bit SGID" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/File-System/" rel="tag">File System</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Permessi/" rel="tag">Permessi</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SGID/" rel="tag">SGID</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/var-www-html/" rel="tag">&#x2F;var&#x2F;www&#x2F;html</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Permessi/" rel="tag">Permessi</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/bit-SGID/" rel="tag">bit SGID</a></li></ul>
 
     </footer>
   </div>
@@ -191,19 +184,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2025/01/28/Impostazione-dei-permessi-in-var-www-html-con-il-bit-SGID/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Impostazione dei permessi in /var/www/html con il bit SGID
-        
-      </div>
-    </a>
   
-  
-    <a href="/2024/12/16/Generazione-e-condivisione-di-password-online-tramite-github-Pages/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2025/01/22/Gestione-dei-permessi-di-gruppo-con-il-bit-SGID-su-Linux/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Generazione e condivisione di password online tramite github Pages</div>
+      <div class="article-nav-title">Gestione dei permessi di gruppo con il bit SGID su Linux</div>
     </a>
   
 </nav>
